@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en" layout:decorate="~{layout/layout_form}">
+<th:blcok layout:fragment="content">
+
+    <head>
+        <meta charset="UTF-8">
+
+        <link href="/css/hrms/hrms.css" rel="stylesheet" />
+    </head>
+
+    <body>
+        <div id="paymanage">
+            <header class="page-header page-header-compact page-header-light border-bottom bg-white">
+                <div class="container-fluid">
+                    <div class="page-header-content">
+                        <div class="row align-items-center justify-content-between pt-3">
+                            <div class="col-auto mb-3">
+                                <h1 class="page-header-title">
+                                    <div class="page-header-icon"><i data-feather="user"></i></div>
+                                    HRMS - 급여 관리
+                                </h1>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+            <header class="page-header page-header-dark bg-gray-900 pb-10">
+                <div class="container">
+                    <div class="page-header-content pt-2">
+                    </div>
+                </div>
+            </header>
+            <div class="container mt-n10">
+                <div class="card mb-4">
+                    <div class="card-header">급여 대상자</div>
+                    <!-- card-body -->
+                    <div class="card-body">
+                        <div class="datatable">
+                            <form>
+                                <div>
+                                    <span>총 {{ empList.length }} 명의 급여 대상자 중 {{ selectList.length }} 명 선택</span>
+                                    <!-- Button trigger modal -->
+                                    <button type="button" class="btn btn-hrms button-middle mb-4"
+                                        data-bs-backdrop="static" data-bs-toggle="modal" data-bs-target="#salary"
+                                        v-on:click="getPaySum()" :disabled="selectList.length==0">
+                                        급여 지급
+                                    </button>
+                                </div>
+                                <div class="tab-content" id="myTabContent">
+                                    <div class="tab-pane fade show active" id="home" role="tabpanel"
+                                        aria-labelledby="home-tab">
+                                        <table class="table table-bordered">
+                                            <thead class=t-middle>
+                                                <tr class="table-light">
+                                                    <th scope="col" class="checkbox"><input class="checkbox"
+                                                            type="checkbox" value="all" v-model="allSelected"></th>
+                                                    <th scope="col">사번</th>
+                                                    <th scope="col">이름</th>
+                                                    <th scope="col">부서</th>
+                                                    <th scope="col">직급</th>
+                                                    <th scope="col">재직 여부</th>
+                                                    <th scope="col">소정 근무</th>
+                                                    <th scope="col">월 급여(A)</th>
+                                                    <th scope="col">공제 액수(B)</th>
+                                                    <th scope="col">경비 정산(C)</th>
+                                                    <th scope="col">실 지급액(A-B+C)</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr v-for="(emp, i) in empList" key="i">
+                                                    <td scope="col" class="checkbox"><input class="checkbox"
+                                                            type="checkbox" v-model="selectList" :id="emp" :value="emp"
+                                                            :key="i" :disabled="emp.restyn === 'y'"></td>
+                                                    <td scope="col">{{emp.empno}}</td>
+                                                    <td scope="col">{{emp.name}}</td>
+                                                    <td scope="col">{{emp.departmentname}}</td>
+                                                    <td scope="col">{{emp.gradename}}</td>
+                                                    <td clsss="rest" v-if="emp.restyn=='y'">휴직</td>
+                                                    <td class="working" v-else>재직</td>
+                                                    <td scope="col">209시간</td>
+                                                    <td scope="col">{{currency(emp.salary)}}</td>
+                                                    <td scope="col">{{currency(emp.privateinsurance)}}</td>
+                                                    <td scope="col">{{currency(emp.expend)}}</td>
+                                                    <td scope="col">{{currency(emp.salary - emp.privateinsurance +
+                                                        emp.expend)}}</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!--modal-->
+            <div class="col-xl-8">
+                <div class="modal fade" id="salary" data-bs-backdrop="static" tabindex="-1" role="dialog"
+                    aria-labelledby="empRegistModalTitle" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered modal-xl" role="document">
+                        <div class="modal-content">
+                            <div class="modal-body p-0">
+                                <!-- details card -->
+                                <div class="card mb-4">
+                                    <div class="card-header">급여 대장 요약</div>
+                                    <!-- card-body -->
+                                    <div class="card-body pb-3" id="card-body-padding">
+
+                                        <div class="container text-center">
+                                            <div class="main-c mb-3">
+                                                <p class="p-title"><b>정산 내역 요약</b></p>
+                                                <div class="row align-items-start paycontents-bb paycontents-bt">
+                                                    <div class="col-4 p-0 pt-2 paycontents paycontents-br">
+                                                        <p class="p-subtitle">실지급액</p>
+                                                        <p class="p-content">{{currency(paySum)}}원</p>
+                                                        <p class="p-target">---</p>
+                                                    </div>
+                                                    <div class="col-4 p-0 pt-2 paycontents paycontents-br">
+                                                        <p class="p-subtitle">지급 계</p>
+                                                        <p class="p-content">{{currency(salarySum)}}원</p>
+                                                        <p class="p-target">대상자:{{" "+selectList.length}}명</p>
+                                                    </div>
+                                                    <div class="col-4 p-0 pt-2 paycontents">
+                                                        <p class="p-subtitle">공제 계</p>
+                                                        <p class="p-content">{{currency(privateinsuranceSum)}}원</p>
+                                                        <p class="p-target">대상자:{{" "+selectList.length}}명</p>
+                                                    </div>
+                                                </div>
+                                                <div class="row align-items-center">
+                                                    <div class="col-4 p-0 pt-2 paycontents paycontents-br">
+                                                        <p class="p-subtitle">경비 정산</p>
+                                                        <p class="p-content">{{currency(expendSum)}}원</p>
+                                                        <p class="p-target">대상자:{{" "+expendCnt}}명</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="main-c mb-3">
+                                                <p class="p-title"><b>급여 대장 요약</b></p>
+                                                <div class="row align-items-start paycontents-bb paycontents-bt">
+                                                    <div class="col-4 p-0 pt-2 paycontents paycontents-br">
+                                                        <p class="p-subtitle">지급일</p>
+                                                        <p class="p-content">{{payday}}</p>
+                                                    </div>
+                                                    <div class="col-4 p-0 pt-2 paycontents paycontents-br">
+                                                        <p class="p-subtitle">정산대상자</p>
+                                                        <p class="p-content">{{selectList.length}}명</p>
+                                                    </div>
+                                                    <div class="col-4 p-0 pt-2 paycontents">
+                                                        <p class="p-subtitle">정산 완료일</p>
+                                                        <p class="p-content">{{today}}</p>
+                                                        <p class="p-target">지급일: D-{{dday}}</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <form>
+                                        <div class="text-center">
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-outline-dark btn-sm"
+                                                    data-bs-dismiss="modal" style="width: 4rem">닫기
+                                                </button>
+                                                <button class="btn btn-hrms shadow-sm btn-sm" type="submit"
+                                                    @click="paySalary" style="width: 4rem">확정
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </form>
+
+                                </div>
+                            </div>
+                            <!-- 버튼 -->
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        </div>
+
+        <!--dayjs 라이브러리(vue 날짜 관련)-->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/dayjs/1.11.6/dayjs.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/dayjs/1.11.6/plugin/isSameOrBefore.min.js"></script>
+
+        <script>
+            const PayManage = {
+                data() {
+                    return {
+                        //사원 리스트
+                        empList: [],
+
+                        //지급할 사원 리스트
+                        selectList: [],
+
+                        //급여 대장 요약
+                        salarySum: 0,
+                        privateinsuranceSum: 0,
+                        expendSum: 0,
+                        paySum: 0,
+                        expendCnt: 0,
+
+                        //급여 날자 관련
+                        today: dayjs().format('YYYY-MM-DD'),
+                        payday: 0,
+                        dday: 0,
+
+
+                        //급여 지급 매월 5일
+                        paydate: 5
+                    }
+                },
+
+                methods: {
+                    //사원 정보 불러오기
+                    getEmpList() {
+                        axios.post("http://localhost:8888/api/hrms/payemplist")
+                            .then((response) => {
+                                this.empList = response.data;
+                            })
+                            .catch(error => console.error(error))
+                    },
+
+                    //급여 지급
+                    paySalary() {
+
+                        for (emp of this.selectList) {
+                            emp.paymentst = this.payday
+                        }
+
+                        axios.post("http://localhost:8888/api/hrms/paysalary", this.selectList)
+                            .then(console.log("급여 완료"))
+                            .catch(error => console.error(error));
+
+                        //location.reload();
+
+
+                    },
+
+                    getPaySum() {
+
+                        this.salaryDo();
+                        this.privateinsuranceDo();
+                        this.expenseDo();
+                        this.setpayday();
+
+                        this.paySum = this.salarySum - this.privateinsuranceSum + this.expendSum
+
+                    },
+
+                    salaryDo() {
+
+                        this.salarySum = 0;
+                        for (emp of this.selectList) {
+                            this.salarySum += emp.salary
+                        }
+
+                    },
+
+
+                    privateinsuranceDo() {
+                        this.privateinsuranceSum = 0;
+
+                        for (emp of this.selectList) {
+                            this.privateinsuranceSum += emp.privateinsurance
+                        }
+                    },
+
+                    expenseDo() {
+                        this.expendSum = 0;
+                        this.expendCnt = 0;
+
+                        for (emp of this.selectList) {
+                            if (emp.expend != 0) {
+                                this.expendCnt++;
+                            }
+                            this.expendSum += emp.expend
+                        }
+                    },
+
+                    setpayday() {
+
+                        let temptoday = dayjs()
+                        let temp = dayjs().set('date', 5) //급여 지급일 매달 5일
+
+                        if (temptoday.isBefore(temp) || temptoday.isSame(temp)) {
+                            this.payday = temp.format("YYYY-MM-DD");
+                            this.dday = temp.diff(temptoday, "d");
+                        } else {
+                            this.payday = temp.add(1, "month").format("YYYY-MM-DD")
+                            this.dday = temp.add(1, "month").diff(temptoday, "d")
+                        }
+                    },
+
+                    currency(e) {
+                        var num = new Number(e);
+                        return num.toFixed(0).replace(/(\d)(?=(\d{3})+(?:\.\d+)?$)/g, "$1,")
+                    }
+
+                },
+
+                computed: {
+
+                    //지급할 사원 선택
+                    allSelected: {
+                        get: function () {
+                            return this.empList.filter((emp) => !emp.disabled).length === this.selectList.length;
+                        },
+
+                        set: function (e) {
+                            this.selectList = e
+                                ? this.empList
+                                    .filter((emp) => !(emp.restyn === 'y'))
+                                    .map((emp) => emp)
+                                : [];
+                        }
+                    }
+                },
+
+                mounted() {
+                    this.getEmpList();
+                },
+
+            }
+
+            Vue.createApp(PayManage).mount('#paymanage')
+
+        </script>
+
+    </body>
+</th:blcok>
+
+</html>

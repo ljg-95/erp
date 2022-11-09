@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="en" layout:decorate="~{layout/layout_form}">
+<th:blcok layout:fragment="content">
+
+    <head>
+        <meta charset="UTF-8">
+
+
+        <link href="/css/expendInformation/modal.css" rel="stylesheet">
+        <link href="/css/hrms/hrms.css" rel="stylesheet" />
+
+        <title>회계 전표</title>
+    </head>
+
+    <body>
+        <header class="page-header page-header-compact page-header-light border-bottom bg-white">
+            <div class="container-fluid">
+                <div class="page-header-content">
+                    <div class="row align-items-center justify-content-between pt-3">
+                        <div class="col-auto mb-3">
+                            <h1 class="page-header-title">
+                                <div class="page-header-icon"><i data-feather="user"></i></div>
+                                HRMS - 회계 전표
+                            </h1>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+        <header class="page-header page-header-dark bg-gray-900 pb-10">
+            <div class="container">
+                <div class="page-header-content pt-2">
+                </div>
+            </div>
+        </header>
+        <div class="container mt-n10">
+            <div class="card mb-4">
+                <div class="card-header">회계 전표</div>
+                <div class="card-body">
+                    <div class="datatable">
+                        <div id="app" class="boardTop">
+
+                            <!--검색 폼-->
+                            <form v-on:submit.prevent method="post">
+                                <div class="form-row">
+                                    <p for="summary" style="color:#212e3c; font-size: 1.1rem">기간별 회계전표 요약</p>
+                                    <div class="row col-12" style="border-bottom: 1px solid #dee2e6;">
+                                        <!--   검색 폼 : 날짜   -->
+                                        <div class="form-group col-md-4">
+                                            <label for="startdate">시작 날짜</label>
+                                            <i class="mr-2 text-primary" data-feather="calendar"></i>
+                                            <input v-model="formStartDvRegDate" id="formStartDvRegDate"
+                                                class="form-control form-control-solid" type="date">
+                                        </div>
+                                        <div class="form-group col-md-4">
+                                            <label for="startdate">종료 날짜</label>
+                                            <i class="mr-2 text-primary" data-feather="calendar"></i>
+                                            <input v-model="formEndDvRegDate" id="formEndDvRegDate"
+                                                class="form-control form-control-solid" type="date">
+                                        </div>
+
+                                        <div class="col-md-2"></div>
+
+                                        <div class="form-group col-md-2" style="display: grid; padding:1rem;">
+                                            <button type="button" id="summary" class="btn btn-dark btn-md"
+                                                data-toggle="modal" onclick="summary_modalShow()" @click="getSummary()">
+                                                요 약
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+
+                                <!--  지출결의 상세조건 검색   -->
+                                <div class="form-row">
+                                    <div class="row col-12 mt-3">
+
+                                        <!--담당자 검색-->
+                                        <div class="form-group col-md-3">
+                                            <label for="formEmpname">담당자</label>
+                                            <div class="input-group input-group-joined input-group-solid">
+                                                <input type="text" class="form-control form-control-sm" id="formEmpname"
+                                                    v-model="formEmpname" name="formEmpname">
+                                            </div>
+                                        </div>
+                                        <!--for의 값과 input의 id 값이 다르면 오류-->
+                                        <!--사번 검색-->
+                                        <div class="form-group col-md-3">
+                                            <label for="formEmpno">사번</label>
+                                            <div class="input-group input-group-joined input-group-solid">
+                                                <input class="form-control form-control-sm" type="text" id="formEmpno"
+                                                    v-model="formEmpno" name="employeeNo">
+                                            </div>
+                                        </div>
+                                        <div class="form-group col-md-4"></div>
+                                        <!--   검색 폼 : 조회 버튼   -->
+                                        <div class="form-group col-md-2" style="display: grid; padding:1rem;">
+                                            <button type="submit" @click="postParam" class="btn btn-dark btn-md">조회
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+
+                            </form>
+
+
+
+
+                            <!--리스트 보여주기-->
+                            <div class="row">
+                                <table class="expendListTable table" style="border: 10px;">
+                                    <!-- 데이터 헤더 출력 부분 -->
+                                    <thead>
+                                        <tr>
+                                            <th>전표 번호</th>
+                                            <th>전표 일자</th>
+                                            <th>사번</th>
+                                            <th>담당자</th>
+                                            <th>지출</th>
+                                            <th>수입</th>
+                                            <th>금액</th>
+                                        </tr>
+                                    </thead>
+
+                                    <!-- 데이터 출력 부분 -->
+                                    <tbody class="allContent">
+                                        <tr id="expendHistoryList" v-for="result in expendHistoryList"
+                                            :key="result.eno">
+
+                                            <!-- 전표 번호 -->
+                                            <td>
+                                                <button type="button" id="detail" class="modal-btn" data-toggle="modal"
+                                                    onclick="detail_modalShow()" @click="getEno(result.eno)">
+                                                    {{result.eno}}
+                                                </button>
+                                            </td>
+
+                                            <!-- 전표 일자 -->
+                                            <td>
+                                                {{result.dvappdate}}
+                                            </td>
+
+                                            <!-- 담당자 사번 -->
+                                            <td>
+                                                {{result.empno}}
+                                            </td>
+
+                                            <!-- 담당자 이름 -->
+                                            <td>
+                                                {{result.dvappname}}
+                                            </td>
+
+                                            <!-- 지출 -->
+                                            <td>
+                                                {{result.dvamt}}
+                                            </td>
+
+                                            <!-- 수입 -->
+                                            <td>
+                                                0
+                                            </td>
+
+                                            <!-- 총 금액 -->
+                                            <td>
+                                                {{result.dvamt}}
+                                            </td>
+                                        </tr>
+
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- detail modal -->
+                            <div class="modal fade" tabindex="-1" id="detail_modal" role="dialog"
+                                data-backdrop="static">
+                                <div class="modal-dialog modal-dialog-centered">
+                                    <div class="modal-content">
+
+                                        <!--modal header-->
+                                        <div class="modal-header">
+                                            <button type="button" class="btn-close" aria-label="Close"
+                                                data-dismiss="modal" onclick="detail_modalHide()"></button>
+                                        </div>
+
+                                        <!--modal body-->
+                                        <div class="modal-body">
+                                            <div id="detail_div_title">
+                                                <table
+                                                    style="border: solid rgb(255, 255, 255); width: 100%; border-collapse: collapse;">
+                                                    <tbody>
+                                                        <tr>
+                                                            <td style="background: white; height: 60px; text-align: center; color: black; font-size: 25px; font-weight: bold; vertical-align: middle;"
+                                                                colspan="2">
+                                                                회계 전표
+                                                            </td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td
+                                                                style="background: white; padding: 0px; color: black; font-size: 12px; font-weight: normal;">
+                                                                <table
+                                                                    style="border: 1px solid rgb(0, 0, 0); margin-top: 1px; border-collapse: collapse;">
+                                                                    <colgroup>
+                                                                        <col width="120">
+                                                                        <col width="180">
+                                                                    </colgroup>
+
+                                                                    <tbody>
+                                                                        <!-- 전표 번호 -->
+                                                                        <tr>
+                                                                            <td class="header"
+                                                                                style="border: 1px solid black">
+                                                                                전표번호
+                                                                            </td>
+                                                                            <td class="header_detail">
+                                                                                <div style="font-size: 9pt;">
+                                                                                    {{modalEno}}
+                                                                                </div>
+                                                                            </td>
+                                                                        </tr>
+                                                                        <!-- 회계 번호 -->
+                                                                        <tr>
+                                                                            <td class="header"
+                                                                                style="border: 1px solid black">
+                                                                                회계 번호
+                                                                            </td>
+                                                                            <td class="header_detail">
+                                                                                <div style="font-size: 9pt;">
+                                                                                    {{modalDvno}}
+                                                                                </div>
+                                                                            </td>
+                                                                        </tr>
+
+                                                                        <!-- 담당자 -->
+                                                                        <tr>
+                                                                            <td class="header">
+                                                                                담당자
+                                                                            </td>
+                                                                            <td class="header_detail">
+                                                                                <div style="font-size: 9pt;">
+                                                                                    {{modalDvappname}}
+                                                                                </div>
+                                                                            </td>
+                                                                        </tr>
+
+                                                                        <!-- 승인 날짜 -->
+                                                                        <tr>
+                                                                            <td class="header">
+                                                                                날짜
+                                                                            </td>
+                                                                            <td class="header_detail">
+                                                                                <div>
+                                                                                    <div style="font-size: 9pt;">
+                                                                                        {{modalDvappdate}}
+                                                                                    </div>
+                                                                                </div>
+                                                                            </td>
+                                                                        </tr>
+
+                                                                    </tbody>
+                                                                </table>
+                                                            </td>
+
+                                                            <td
+                                                                style="padding: 0px; border: currentColor; text-align: right; color: black; font-size: 12px; font-weight: normal; vertical-align: top;">
+                                                                <div>
+                                                                    <span>
+                                                                        <strong>담당</strong>
+                                                                    </span>
+                                                                    &nbsp;&nbsp;
+                                                                    <span>
+                                                                        <strong>임원</strong>
+                                                                    </span>
+                                                                </div>
+                                                            </td>
+
+                                                        </tr>
+
+                                                    </tbody>
+                                                </table>
+                                            </div>
+
+                                            <br>
+
+                                            <div id="detailExpendHistoryWrapper" style="margin-top: 10px">
+                                                <table class="detailEI" style="width:100%; height: 100px;">
+                                                    <colgroup>
+                                                        <col width="140">
+                                                        <col width="180">
+                                                        <col width="250">
+                                                        <col width="110">
+                                                        <col width="120">
+                                                    </colgroup>
+
+                                                    <tbody>
+                                                        <div id="detail_insertDetail">
+                                                            <tr>
+                                                                <!-- 계정 과목 -->
+                                                                <td class="subjectColumn">
+                                                                    <div style="font-size: 9pt;">
+                                                                        계정 과목
+                                                                    </div>
+                                                                </td>
+
+                                                                <!-- 적요 -->
+                                                                <td class="subjectColumn">
+                                                                    <div style="font-size: 9pt;">
+                                                                        적 요
+                                                                    </div>
+                                                                </td>
+
+                                                                <!-- 지출 -->
+                                                                <td class="subjectColumn">
+                                                                    <div style="font-size: 9pt;">
+                                                                        지출
+                                                                    </div>
+                                                                </td>
+
+                                                                <!-- 수입 -->
+                                                                <td class="subjectColumn">
+                                                                    <div style="font-size: 9pt;">
+                                                                        수입
+                                                                    </div>
+                                                                </td>
+                                                            </tr>
+
+                                                            <tr v-for="result in detailModalList" :key="result">
+
+                                                                <!-- 계정 과목  -->
+                                                                <td class="detailColumn" style="height: 29px;">
+                                                                    <input type="text" class="form-control"
+                                                                        style="width: 100%; height: 100%; border: 0;"
+                                                                        :value="result.divname" readonly>
+                                                                </td>
+
+                                                                <!-- 적요 -->
+                                                                <td class="detailColumn">
+                                                                    <input type="text" class="form-control"
+                                                                        style="width: 100%; height: 100%; border: 0;"
+                                                                        :value="result.briefs" readonly>
+                                                                </td>
+
+                                                                <!-- 지출 -->
+                                                                <!-- 개별 지출을 보여줘야함 -->
+                                                                <td class="detailColumn" style="height: 29px;">
+                                                                    <input type="text" class="form-control"
+                                                                        style="width: 100%; height: 100%; border: 0;"
+                                                                        :value="result.price" readonly>
+                                                                </td>
+
+                                                                <!-- 수입 -->
+                                                                <td class="detailColumn" style="height: 29px;">
+                                                                    <input type="text" class="form-control"
+                                                                        style="width: 100%; height: 100%; border: 0;"
+                                                                        value="0" readonly>
+                                                                </td>
+                                                            </tr>
+                                                        </div>
+
+                                                        <tr>
+                                                            <td colspan="2" class="subjectColumn">
+                                                                합계
+                                                            </td>
+
+                                                            <!-- 총 금액이 나와야함 -->
+                                                            <!-- 총 금액  -->
+                                                            <td colspan="2" id="detail_total_amount"
+                                                                class="detailColumn">
+                                                                {{modalDvamt}}
+                                                            </td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+
+                                        <!--modal footer-->
+                                        <div class="modal-footer">
+                                            <button type="button" class="button" id="detail_close"
+                                                onclick="detail_modalHide()">닫기</button>
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- detail modal fin-->
+
+                            <!--summary modal-->
+                            <div class="modal fade" tabindex="-1" id="summary_modal" role="dialog"
+                                data-backdrop="static">
+                                <div class="modal-dialog modal-dialog-centered">
+                                    <div class="modal-content">
+
+                                        <!--modal header-->
+                                        <div class="modal-header">
+                                            <button type="button" class="btn-close" aria-label="Close"
+                                                data-dismiss="modal" onclick="summary_modalHide()"></button>
+                                        </div>
+
+                                        <!--modal body-->
+                                        <div class="modal-body">
+                                            <div id="summary_div_title">
+                                                <table
+                                                    style="border: solid rgb(255, 255, 255); width: 100%; border-collapse: collapse;">
+                                                    <tbody>
+                                                        <tr>
+                                                            <td style="background: white; height: 60px; text-align: center; color: black; font-size: 25px; font-weight: bold; vertical-align: middle;"
+                                                                colspan="2">
+                                                                요 약
+                                                            </td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td
+                                                                style="background: white; padding: 0px; color: black; font-size: 12px; font-weight: normal;">
+                                                                <table
+                                                                    style="border: 1px solid rgb(0, 0, 0); margin-top: 1px; border-collapse: collapse;">
+                                                                    <colgroup>
+                                                                        <col width="120">
+                                                                        <col width="180">
+                                                                    </colgroup>
+
+                                                                    <tbody>
+                                                                        <!-- 승인 날짜 -->
+                                                                        <tr>
+                                                                            <td class="header">
+                                                                                날짜
+                                                                            </td>
+                                                                            <td class="header_detail">
+                                                                                <div>
+                                                                                    <div style="font-size: 9pt;">
+                                                                                        {{formStartDvRegDate}} ~
+                                                                                        {{formEndDvRegDate}}
+                                                                                    </div>
+                                                                                </div>
+                                                                            </td>
+                                                                        </tr>
+
+                                                                    </tbody>
+                                                                </table>
+                                                            </td>
+                                                        </tr>
+
+                                                    </tbody>
+                                                </table>
+                                            </div>
+
+                                            <br>
+
+                                            <div id="summaryExpendHistoryWrapper" style="margin-top: 10px">
+                                                <table class="detailEI" style="width:100%; height: 100px;">
+
+
+                                                    <tbody>
+                                                        <div id="summaryInsertDetail">
+                                                            <tr>
+                                                                <!-- 계정 과목 -->
+                                                                <td class="subjectColumn">
+                                                                    <div style="font-size: 9pt;">
+                                                                        계정 과목
+                                                                    </div>
+                                                                </td>
+
+                                                                <!-- 지출 -->
+                                                                <td class="subjectColumn">
+                                                                    <div style="font-size: 9pt;">
+                                                                        지출
+                                                                    </div>
+                                                                </td>
+
+                                                                <!-- 수입 -->
+                                                                <td class="subjectColumn">
+                                                                    <div style="font-size: 9pt;">
+                                                                        수입
+                                                                    </div>
+                                                                </td>
+                                                            </tr>
+
+                                                            <tr v-for="result in summaryModalList" :key="result">
+
+                                                                <!-- 계정 과목  -->
+                                                                <td class="detailColumn" style="height: 29px;">
+                                                                    <input type="text" class="form-control"
+                                                                        style="width: 100%; height: 100%; border: 0;"
+                                                                        :value="result.divname" readonly>
+                                                                </td>
+
+                                                                <!-- 지출 -->
+                                                                <!-- 개별 지출을 보여줘야함 -->
+                                                                <td class="detailColumn" style="height: 29px;">
+                                                                    <input type="text" class="form-control"
+                                                                        style="width: 100%; height: 100%; border: 0;"
+                                                                        :value="result.total_divcd_price" readonly>
+                                                                </td>
+
+                                                                <!-- 수입 -->
+                                                                <td class="detailColumn" style="height: 29px;">
+                                                                    <input type="text" class=""
+                                                                        style="width: 100%; height: 100%; border: 0;"
+                                                                        value="0" readonly>
+                                                                </td>
+                                                            </tr>
+                                                        </div>
+
+                                                        <tr>
+                                                            <td colspan="1" class="subjectColumn">
+                                                                합계
+                                                            </td>
+
+                                                            <!-- 총 금액이 나와야함 -->
+                                                            <!-- 총 금액  -->
+                                                            <td colspan="1" id="summary_total_amount"
+                                                                class="detailColumn">
+                                                                {{totalDivcdDvamt}}
+                                                            </td>
+                                                            <td colspan="1" id="summary_total_income"
+                                                                class="detailColumn">
+                                                                0
+                                                            </td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+
+                                        <!--modal footer-->
+                                        <div class="modal-footer">
+                                            <button type="button" class="button" id="summary_close"
+                                                onclick="summary_modalHide()">닫기</button>
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- summary modal fin-->
+
+
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+
+        <script>
+            // detail modal show
+            function detail_modalShow() {
+                console.log("show");
+                $("#detail_modal").modal("show");
+            }
+
+            // detail modal hide
+            function detail_modalHide() {
+                console.log("hide");
+                $("#detail_modal").modal("hide");
+            }
+
+            // summary modal show
+            function summary_modalShow() {
+                console.log("show");
+                $("#summary_modal").modal("show");
+            }
+
+            // summary modal hide
+            function summary_modalHide() {
+                console.log("hide");
+                $("#summary_modal").modal("hide");
+            }
+        </script>
+
+        <script>
+
+            const expendHistory = {
+                data() {
+                    return {
+                        formStartDvRegDate: '',         //검색 폼 : 시작 날짜
+                        formEndDvRegDate: '',           //검색 폼 : 마지막 날짜
+                        formEmpno: '',                  //검색 폼 : 사번
+                        formEmpname: '',                //검색 폼 : 사원 이름
+                        dvappname: '',                  //담당자
+                        modalEno: '',                   //전표 번호
+                        modalDvno: '',                  //지출 결의 번호
+                        modalDvappname: '',             //담당자
+                        modalDvappdate: '',             //회계 전표 승인 날짜
+                        modalDvamt: '',                  //총 금액
+                        totalDivcdDvamt: '',             //계정 과목에 따른 총 금액
+                        expendHistoryList: [],          //회계 전표 리스트
+                        detailModalList: [],           //전표 번호에 따른 회계 전표 상세보기 리스트
+                        summaryModalList: [],           //날짜에 따른 계정과목 별 총 금액 리스트
+
+                    }
+                },
+
+                methods: {
+                    // 조건에 따른 parameter post, 전체적인 리스트
+                    postParam() {
+                        axios.post("http://localhost:8888/api/expendHistoryParam",
+                            {
+                                formEmpno: this.formEmpno,
+                                formEmpname: this.formEmpname,
+                                formStartDvRegDate: this.formStartDvRegDate,
+                                formEndDvRegDate: this.formEndDvRegDate,
+                            }
+                        ).then((response) => {
+                            this.expendHistoryList = response.data;
+                        }).catch(error => console.error(error))
+                    },
+
+                    // 전표 번호에 따른 데이터 받는 메소드, 전표 번호 상세 정보
+                    getEno: function (eno) {
+                        axios.post("http://localhost:8888/api/expendHistoryEno",
+                            {
+                                modalEno: eno
+                            })
+                            .then((response) => {
+                                this.detailModalList = response.data;
+                                this.modalEno = this.detailModalList[0].eno;
+                                this.modalDvno = this.detailModalList[0].dvno;
+                                this.modalDvappname = this.detailModalList[0].dvappname;
+                                this.modalDvappdate = this.detailModalList[0].dvappdate;
+                                this.modalDvamt = this.detailModalList[0].dvamt;
+                                console.log(this.detailModalList);
+                            })
+                            .catch(error => console.error(error))
+                    },
+
+                    // 날짜에 따른 회계 전표 요약
+                    getSummary: function () {
+                        let today = new Date();
+
+                        if (this.formStartDvRegDate == "") {
+                            this.formStartDvRegDate = dateFormat(today);
+                        }
+                        if (this.formEndDvRegDate == "") {
+                            this.formEndDvRegDate = dateFormat(today);
+                        }
+
+                        axios.post("http://localhost:8888/api/expendHistorySummary",
+                            {
+                                formStartDvRegDate: this.formStartDvRegDate,
+                                formEndDvRegDate: this.formEndDvRegDate,
+                                formEmpno: this.formEmpno,
+                                formEmpname: this.formEmpname,
+                            }
+                        ).then((response) => {
+                            this.summaryModalList = response.data;
+                            console.log(this.summaryModalList);
+
+                            this.totalDivcdDvamt = 0;
+                            for (let i = 0; i < this.summaryModalList.length; i++) {
+                                this.totalDivcdDvamt += this.summaryModalList[i].total_divcd_price;
+                            }
+
+                        }).catch(error => console.error(error))
+
+                    },
+
+
+
+                }
+            };
+
+
+            //날짜 포멧 yyyy-MM-dd summary에서 날짜를 표현하기 위해 사용
+            function dateFormat(date) {
+                let month = date.getMonth() + 1;
+                let day = date.getDate();
+
+                month = month >= 10 ? month : '0' + month;
+                day = day >= 10 ? day : '0' + day;
+
+                return date.getFullYear() + '-' + month + '-' + day;
+            }
+
+
+            Vue.createApp(expendHistory).mount('#app');
+
+        </script>
+
+
+    </body>
+</th:blcok>
+
+</html>

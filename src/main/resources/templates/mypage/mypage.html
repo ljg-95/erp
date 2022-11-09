@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en" layout:decorate="~{layout/layout_form}">
+<th:blcok layout:fragment="content">
+
+    <head>
+        <meta charset="UTF-8">
+
+        <link href="/css/hrms/hrms.css" rel="stylesheet" />
+    </head>
+
+    <body>
+    <div id="mypage">
+        <header class="page-header page-header-compact page-header-light border-bottom bg-white">
+            <div class="container-fluid">
+                <div class="page-header-content">
+                    <div class="row align-items-center justify-content-between pt-3">
+                        <div class="col-auto mb-3">
+                            <h1 class="page-header-title">
+                                <div class="page-header-icon"><i data-feather="user"></i></div>
+                                HRMS - 내 정보 수정
+                            </h1>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+        <header class="page-header page-header-dark bg-gray-900 pb-10">
+            <div class="container">
+                <div class="page-header-content pt-2">
+                </div>
+            </div>
+        </header>
+        <div class="container mt-n10">
+            <div class="card mb-4">
+                <div class="card-header">내 정보 수정</div>
+                <!-- card-body -->
+                <div class="card-body pb-3" id="card-body-padding" style="
+                padding: 3% 25% ;
+                ">
+                    <form>
+                        <div>
+                            <!-- Form Row 1 (기본 정보 조회) -->
+                            <div class="form-row">
+                                <!-- Form Group (사원 증명사진) -->
+                                <div class="form-group col-md-4" style="text-align: center">
+                                    <img :src="physicalpath" style="height: 200; width:143px"
+                                         onerror="this.src='/images/noProfile.png'" />
+                                </div>
+                                <!-- Form Group (개인정보) -->
+                                <div class="form-group col-md-4">
+                                    <label label class="small mb-1" for="empno">사번</label>
+                                    <input type="text" class="form-control form-control-sm"
+                                           id="empno" :value="empDetail.empno" readonly>
+    
+                                    <label label class="small mb-1" for="password">비밀번호</label>
+                                    <input type="password" class="form-control form-control-sm"
+                                            id="password" 
+                                            v-model="pw"
+                                            maxlength="16"
+                                            @blur="passwordValid" >
+                                    <div v-show="!passwordValidFlag" style="color : #ec3a3a; font-size: 11px;">
+                                        숫자와 영문을 혼합해 주세요(8~16자리)
+                                    </div>        
+    
+                                    <label label class="small mb-1" for="password">비밀번호 확인</label>
+                                    <input type="password" class="form-control form-control-sm"
+                                            id="password" 
+                                            v-model="pwconfirm"
+                                            maxlength="16"
+                                            @blur="passwordCheckValid">
+                                    <div v-show="!passwordCheckFlag" style="color : #ec3a3a; font-size: 11px;">
+                                        비밀번호가 일치하지 않습니다.
+                                    </div>  
+    
+                                    <label label class="small mb-1" for="regno">주민등록번호</label>
+                                    <div>
+                                        <input type="text" class="form-control form-control-sm"
+                                               id="regno1" :value="preregno"
+                                               style="width: 47%; display: inline-block" readonly>-
+                                        <input type="text" class="form-control form-control-sm"
+                                               id="regno2" :value="sufregno"
+                                               style="width: 48%; display: inline-block;" readonly>
+                                    </div>
+    
+                                    <label label class="small mb-1" for="tel">연락처</label>
+                                    <div>
+                                        <input type="tel" class="form-control form-control-sm"
+                                               id="tel1" v-model="tel1"
+                                               style="width: 30%; display: inline-block;" >-
+                                        <input type=" tel" class="form-control form-control-sm"
+                                               id="tel2" v-model="tel2"
+                                               style="width: 30%; display: inline-block;" >-
+                                        <input type="tel" class="form-control form-control-sm"
+                                               id="tel3" v-model="tel3"
+                                               style="width: 30%; display: inline-block;" >
+                                    </div>
+                                </div>
+                                <!-- Form Group (개인정보2) -->
+                                <div class="form-group col-md-4">
+                                    <label label class="small mb-1" for="name">사원명</label>
+                                    <input type="text" class="form-control form-control-sm"
+                                           id="name" :value="empDetail.name" readonly>
+    
+                                    <label label class="small mb-1" for="gender">성별</label>
+                                    <div class="form-control form-control-sm border-0" style="display: flex;">
+                                        <div class="form-check form-check-inline col-md-5">
+                                            <input class="form-check-input" type="radio"
+                                                   name="gender" id="gender" value="남"
+                                                   :checked="empDetail.gender === '남'" disabled>
+                                            <label class="form-check-label" for="gender">남</label>
+                                        </div>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="radio"
+                                                   name="gender" id="gender" value="여"
+                                                   :checked="empDetail.gender === '여'" disabled>
+                                            <label class="form-check-label" for="gender">여</label>
+                                        </div>
+                                    </div>
+                                    <label label class="small mb-1" for="school">최종학력</label>
+                                    <input type="text" class="form-control form-control-sm"
+                                           id="school" :value="empDetail.school" readonly>
+    
+                                    <label label class="small mb-1" for="mail">이메일</label>
+                                    <input type="email" class="form-control form-control-sm"
+                                           id="mail" v-model="empDetail.mail" >
+                                </div>
+                            </div>
+                            <!-- Form Row 2 (주소 등록) -->
+                            <div class="form-row">
+                                <div class="form-group col-md-2" style="align-self: end">
+                                    <input type="button" class="btn btn-outline-erp btn-sm"
+                                           style="height: 26px; width: 103px;"
+                                           @click="execDaumPostcode()"
+                                           value="주소"><br>
+                                </div>
+                                <!-- Form Group (주소) -->
+                                <div class="form-group col-md-10">
+                                    <label class="small mb-1" for="addr">주소</label>
+                                    <input type="text" class="form-control form-control-sm"
+                                           id="addr" v-model="empDetail.addr" >
+                                </div>
+                                <!-- Form Group (상세주소) -->
+                                <div class="form-group col-md-8">
+                                    <label class="small mb-1" for="addrdetail">상세주소</label>
+                                    <input type="text" class="form-control form-control-sm"
+                                           id="addrdetail" v-model="empDetail.addrdetail"
+                                           >
+    
+                                </div>
+                                <!-- Form Group (우편번호) -->
+                                <div class="form-group col-md-4">
+                                    <label class="small mb-1" for="zipcode">우편번호</label>
+                                    <input type="text" class="form-control form-control-sm"
+                                           id="zipcode" v-model="empDetail.zipcode" >
+                                </div>
+                            </div>
+                            <!-- Form Row 3 (월급통장 등록) -->
+                            <div class="form-row">
+                                <!-- Form Group (은행) -->
+                                <div class="form-group col-md-4">
+                                    <label class="small mb-1" for="bankcd">은행</label>
+                                    <select class="form-select form-select-sm" id="bankcd"
+                                        v-model="empDetail.bankcd">
+                                        <option v-for="(bank, i) in bankList" :key="i"
+                                            :value="bank.bankcd">{{ bank.bankname }}</option>
+                                    </select>
+                                    <div class="invalid-feedback">
+                                        은행을 선택해주세요.
+                                    </div>
+                                </div>
+                                <!-- Form Group (계좌번호) -->
+                                <div class="form-group col-md-8">
+                                    <label class="small mb-1" for="account">계좌번호</label>
+                                    <input type="text" class="form-control form-control-sm"
+                                           id="account" v-model="empDetail.account" >
+                                </div>
+                            </div>
+                            <!-- Form Row 4 (부서/직무/권한 등록) -->
+                            <div class="form-row">
+                                <!-- Form Group (부서) -->
+                                <div class="form-group col-md-4">
+                                    <label class="small mb-1" for="departmentcd">부서</label>
+                                    <input type="text" class="form-control form-control-sm"
+                                           id="departmentcd" :value="empDetail.departmentname"
+                                           readonly>
+                                </div>
+                                <!-- Form Group (직무) -->
+                                <div class="form-group col-md-4">
+                                    <label class="small mb-1" for="gradecd">직무</label>
+                                    <input type="text" class="form-control form-control-sm"
+                                           id="gradecd" :value="empDetail.gradename" readonly>
+                                </div>
+                                <!-- Form Group (권한) -->
+                                <div class="form-group col-md-4">
+                                    <label class="small mb-1" for="usertype">권한</label>
+                                    <input type="text" class="form-control form-control-sm"
+                                           id="usertype" :value="empDetail.username" readonly>
+                                </div>
+                            </div>
+                            <!-- Form Row 5 (재직여부/입사일/퇴사일 등록) -->
+                            <div class="form-row">
+                                <!-- Form Group (재직구분) -->
+                                <div class="form-group col-md-4">
+                                    <label label class="small mb-1" for="empStatus">재직구분</label>
+                                    <div class="form-control form-control-sm border-0" style="display: flex;"
+                                         id="empStatus">
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="radio"
+                                                   name="empStatus" id="retire_n"
+                                                   value="n" :checked="empDetail.retireyn === 'n'" disabled>
+                                            <label class="form-check-label"
+                                                   for="retire_n">재직</label>
+                                        </div>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="radio"
+                                                   name="empStatus" id="rest_y"
+                                                   value="y" :checked="empDetail.restyn === 'y'" disabled>
+                                            <label class="form-check-label" for="rest_y">휴직</label>
+                                        </div>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="radio"
+                                                   name="empStatus" id="retire_y"
+                                                   value="y" :checked="empDetail.retireyn === 'y'" disabled>
+                                            <label class="form-check-label"
+                                                   for="retire_y">퇴직</label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- Form Group (입사일) -->
+                                <div class="form-group col-md-4">
+                                    <label class="small mb-1" for="entrydate">입사일</label>
+                                    <input type="text" class="form-control form-control-sm"
+                                           id="entrydate" :value="empDetail.entrydate" readonly>
+                                </div>
+                                <!-- Form Group (퇴사일) -->
+                                <div class="form-group col-md-4">
+                                    <label class="small mb-1" for="retiredate">퇴사일</label>
+                                    <input type="text" class="form-control form-control-sm"
+                                           id="retiredate" :value="empDetail.retiredate"
+                                           readonly>
+                                </div>
+                            </div>
+                            <!-- Form Row 6 (근무연차/연봉/퇴직금 등록) -->
+                            <div class="form-row">
+                                <!-- Form Group (근무연차) -->
+                                <div class="form-group col-md-4">
+                                    <label label class="small mb-1"
+                                           for="privateinsurance">근무연차</label>
+                                    <input type="text" class="form-control form-control-sm"
+                                           id="privateinsurance"
+                                           :value="empDetail.privateinsurance" readonly>
+                                </div>
+                                <!-- Form Group (연봉) -->
+                                <div class="form-group col-md-4">
+                                    <label class="small mb-1" for="yearsalary">연봉</label>
+                                    <input type="text" class="form-control form-control-sm"
+                                           id="yearsalary" :value="empDetail.yearsalary"
+                                           readonly>
+                                </div>
+                                <!-- Form Group (퇴직금) -->
+                                <div class="form-group col-md-4">
+                                    <label label class="small mb-1" for="retirementpay">퇴직금</label>
+                                    <input type="text" class="form-control form-control-sm"
+                                           id="retirementpay" :value="empDetail.retirementpay"
+                                           readonly>
+                                </div>
+                            </div>
+    
+                            <!-- 기타 -->
+                            <div class="form-row">
+                                <!-- Form Group (퇴사사유 등록) -->
+                                <div class="form-group col-md-12">
+                                    <label class="small mb-1" for="retirenote">퇴사사유</label>
+                                    <textarea class="form-control" id="retirenote"
+                                              :value="empDetail.retirenote" rows="1"
+                                              readonly></textarea>
+                                </div>
+                                <!-- Form Group (비고 등록) -->
+                                <div class="form-group col-md-12">
+                                    <label class="small mb-1" for="memo">비고</label>
+                                    <textarea class="form-control" id="memo"
+                                              :value="empDetail.memo" rows="3" readonly></textarea>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- 버튼 -->
+                        <div class="text-center">
+                            <div class="modal-footer">
+                                <button class="btn btn-outline-success shadow-sm btn-sm"
+                                        type="submit" @click="update" style="width: 4rem">수정
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+    </div>
+    <th:block th:replace="layout/footer::footer"></th:block>
+    <script>
+      const Mypage = {
+        data() {
+          return {
+            empDetail : '',
+            bankList : '',
+
+            //비밀번호 확인
+            pw :'',
+            pwconfirm : '',
+            passwordValidFlag: true,
+            passwordCheckFlag: true,
+
+            //주민등록번호 분할
+            preregno : '',
+            sufregno : '',
+
+            //핸드폰 번호
+            tel1 : '',
+            tel2 : '',
+            tel3 : '',
+
+            //업데이트 데이터
+            tel:'',
+            mail:'',
+            zipcode: '',
+            addr: '',
+            addrdetail: '',
+            account: '',
+            bankcd: '',
+
+          }
+        },
+
+        methods: {
+            // 상세 정보 메소드
+            getMyInfo() {
+                        axios.post("http://localhost:8888/api/mypage")
+                            .then((response) => {
+                                this.empDetail = response.data;
+
+                                // 주민등록 번호 분할
+                                this.preregno = (this.empDetail.regno).substr(0, 6);
+                                this.sufregno = (this.empDetail.regno).substr(6,13);
+
+                                // 연락처 앞/뒤자리 처리
+                                this.tel1 = (this.empDetail.tel).substr(0, 3);
+                                this.tel2 = (this.empDetail.tel).substr(3, 4);
+                                this.tel3 = (this.empDetail.tel).substr(7, 4);
+                            })
+                            .catch(error => console.error(error))
+            },
+
+            // 내 정보 수정
+            update() {
+
+                if(this.passwordValidFlag&&this.passwordCheckFlag&&this.pw!=null){
+                    axios.post("http://localhost:8888/api/mypage/update",{
+                            empno : this.empDetail.empno,
+                            password : this.pw,
+                            tel : this.tel1+this.tel2+this.tel3,
+                            mail : this.empDetail.mail,
+                            zipcode: this.empDetail.zipcode,
+                            addr: this.empDetail.addr,
+                            addrdetail: this.empDetail.addrdetail,
+                            bankcd: this.empDetail.bankcd,
+                            account: this.empDetail.account
+                        })
+                        .then((response) => {
+                                
+                        })
+                        .catch(error => console.error(error))                
+                
+                }    
+            },
+
+            // 은행목록
+            getBankList() {
+                axios.post("http://localhost:8888/api/hrms/bankList")
+                    .then((response) => {
+                       this.bankList = response.data;
+                       })
+                    .catch(error => console.error(error))
+            },
+
+            // 사원 주소 등록 
+            execDaumPostcode() {
+                new daum.Postcode({
+                    oncomplete: (result) => {
+
+                        if (this.empDetail.addrdetail !== '') { // 상세주소 초기화
+                            this.empDetail.addrdetail = '';
+                        }
+
+                        if (result.userSelectedType === 'R') {
+                                this.empDetail.addr = result.roadAddress; // 도로명주소 선택
+                        } else {
+                            this.empDetail.addr = result.jibunAddress; // 지번주소 선택 
+                        }
+
+                        this.empDetail.zipcode = result.zonecode; // 새우편번호 
+
+                    }
+                }).open();
+            },
+
+            passwordValid(){
+                if(/^((?=.*[a-z])|(?=.*[A-Z]))(?=.*[0-9]).{8,16}$/.test(this.pw)){
+                    this.passwordValidFlag=true
+                }else{
+                    this.passwordValidFlag=false
+                }
+            },
+
+            passwordCheckValid(){
+                console.log(this.pw)
+                console.log(this.pwconfirm)
+                console.log(this.pw===this.pwconfirm)
+                if(this.pw===this.pwconfirm){
+                    this.passwordCheckFlag=true
+                }else{
+                    this.passwordCheckFlag=false
+                }
+            }
+            
+            
+        },
+
+            //은행 리스트
+            
+        mounted() {
+            this.getMyInfo();
+            this.getBankList();
+        },
+
+      }
+
+      Vue.createApp(Mypage).mount('#mypage')
+
+    </script>
+    
+    </body>
+</th:blcok>
+
+</html>

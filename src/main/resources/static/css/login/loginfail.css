@@ -1,0 +1,38 @@
+.notification-container {
+  background: rgba(0,0,0,.1);
+  border-radius: 0.25rem 0.25rem 0.25rem 0.25rem;
+  padding: 20px 45px;
+  top: 13%;
+  transition: 0.55s;
+  text-align: center;
+  max-width: 19rem;
+  margin: auto;
+  opacity: 0;
+}
+
+.notification-container.show {
+  background: rgba(0,0,0,.1);
+  border-radius: 0.25rem 0.25rem 0.25rem 0.25rem;
+  padding: 20px 45px;
+  top: 13%;
+  transition: 0.55s;
+  text-align: center;
+  max-width: 19rem;
+  margin: auto;
+  opacity: 1;
+}
+
+.card{
+margin-bottom: 106px;
+}
+
+.placeholder-wave{
+  margin:0;
+}
+
+.placeholder{
+  vertical-align: 0;
+  opacity:0;
+  display:-webkit-box;
+  border-radius : 0.25rem 0.25rem 0 0;
+}

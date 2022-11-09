@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="sjht.erp.detailexpend.repository.ExpendInsertMapper">
+    <!-- empno 별 사원의 데이터를 출력-->
+    <select id="selectOneEmployee" resultType="sjht.erp.detailexpend.dto.request.SelectEmployeeDto"
+            parameterType="Integer">
+        select *
+        from employee
+        where empno = #{empno}
+    </select>
+
+    <!-- 부서정보중 부서코드별 부서이름을 출력-->
+    <select id="selectOneDepartmentName" resultType="String" parameterType="String">
+        select departmentname
+        from departmentcode
+        where departmentcd = #{departmentcd}
+    </select>
+
+    <!-- DVNO를 자동생성하기 위한 쿼리문-->
+    <select id="selectLastOne" resultType="String">
+        SELECT dvno
+        FROM expendinformation
+        order by substr(dvno from 1 for 4),
+                 cast(substr(dvno from 5) AS UNSIGNED) desc
+        LIMIT 1
+    </select>
+    <!-- 모든 지출결의 정보를 출력-->
+    <select id="selectAll" resultType="String">
+        SELECT dvno
+        FROM expendinformation
+    </select>
+
+    <!--지출결의 정보를 넘겨주기 위해 먼저 DVNO를 할당해준다. -->
+    <insert id="insertDvno" parameterType="String">
+        insert into expendinformation(dvno, dvappyn)
+        values (#{dvno}, 'w')
+    </insert>
+
+    <!--지출결의문 작성-->
+    <insert id="insertExpend" parameterType="sjht.erp.detailexpend.dto.request.InsertRequestDto">
+        insert into detailexpend(dvno, dvusedate, price, dvmemo, divcd, briefs, detailuse)
+        values (#{dvno}, #{dvusedate}, #{price}, #{dvmemo}, #{divcd}, #{briefs}, #{detailuse})
+    </insert>
+
+    <!--영수증 파일 입력-->
+    <insert id="insertFile" parameterType="sjht.erp.detailexpend.dto.request.FileRequestDto">
+        insert into file
+            (filename, physicalpath, filesize, empno, kind, relatedpath, dno)
+        values (#{filename},
+                #{physicalpath},
+                #{filesize},
+                #{empno},
+                #{kind},
+                #{relatedpath},
+                #{dno})
+    </insert>
+
+    <!--ExpendInformation 테이블의 dvamt의 값을 구하기 위한 쿼리문-->
+    <select id="sumPrice" resultType="int" parameterType="String">
+        select sum(price)
+        from detailexpend
+        where dvno = #{dvno}
+    </select>
+
+    <!--지출결의 정보를 입력한 후 그 값을 지출결의 목록 테이블에 넘겨줌-->
+    <update id="updateExpendInformation" parameterType="sjht.erp.detailexpend.dto.request.UpdateRequestDto">
+        update expendinformation
+        set empno=#{empno},
+            departmentcd=#{departmentcd},
+            dvregdate=#{dvregdate},
+            dvamt=#{dvamt}
+        where dvno = #{dvno}
+    </update>
+
+    <!--detail 테이블에 dvno를 업데이트 해주기 위한 쿼리문-->
+    <update id="updateDetailDVNO" parameterType="sjht.erp.detailexpend.dto.request.UpdateDvnoRequestDto">
+        update detailexpend
+        set dvno = #{dvno}
+        where dno = #{dno}
+    </update>
+
+    <!--지출결의문을 상세보기 하기 위한 쿼리문-->
+    <select id="selectDetailExpend" resultType="sjht.erp.detailexpend.dto.response.DetailResponseDto"
+            parameterType="String">
+        select *
+        from detailexpend
+        where dvno = #{dvno}
+    </select>
+
+    <!-- 지출결의 상세보기에서 마지막 dno를 찾기 위한 쿼리문-->
+    <select id="selectDetailExpendDnoOne" parameterType="String" resultType="Integer">
+        select dno
+        from detailexpend
+        where dvno = #{dvno}
+        order by dno desc
+        limit 1
+    </select>
+
+    <!--상세보기에서 목록중 하나를 삭제하기 위한 테이블-->
+    <delete id="deleteDetailExpendInteger" parameterType="Integer">
+        delete
+        from detailexpend
+        where dno = #{dno}
+    </delete>
+
+    <delete id="deleteDetailExpend" parameterType="String">
+        delete
+        from detailexpend
+        where dvno = #{dvno}
+    </delete>
+
+    <delete id="deleteExpendInformation" parameterType="String">
+        delete
+        from expendinformation
+        where dvno = #{dvno}
+    </delete>
+    <select id="findExpendInformationsByEmpnoAndApproveryn" parameterType="Integer"
+            resultType="sjht.erp.detailexpend.dto.response.MyExpendListResponseDto">
+        select dvno
+             , i.empno
+             , e.name
+             , d.departmentname
+             , i.dvregdate
+             , i.dvamt
+             , i.dvappyn
+        from expendinformation i
+                 left join employee e on i.empno = e.empno
+                 left join departmentcode d on e.departmentcd = d.departmentcd
+        where i.dvappyn = 'w'
+          and i.empno = #{empno}
+        order by substr(dvno from 1 for 4),
+                 cast(substr(dvno from 5) AS UNSIGNED) desc;
+    </select>
+    <select id="selectMyDetailExpend" parameterType="Integer"
+            resultType="sjht.erp.detailexpend.dto.response.DetailResponseDto">
+        select *
+        from detailexpend
+        where dno = #{dno}
+    </select>
+    <update id="updateMyDetailExpend" parameterType="sjht.erp.detailexpend.dto.request.UpdateMyDetailExpendRequestDto">
+        update detailexpend
+        set dvusedate = #{dvusedate},
+            divcd     = #{divcd},
+            briefs    = #{briefs},
+            detailuse = #{detailuse},
+            price     = #{price},
+            dvmemo    = #{dvmemo}
+        where dno = #{dno}
+    </update>
+    <select id="findFilesByDvno" resultType="sjht.erp.detailexpend.dto.response.FileResponseDto" parameterType="String">
+        select f.dno,
+               f.filename,
+               f.kind,
+               f.empno,
+               f.physicalpath,
+               f.relatedpath,
+               f.filesize,
+               f.fileno
+        from file f
+                 left join detailexpend d on f.dno = d.dno
+                 left join expendinformation e on d.dvno = e.dvno
+        where d.dvno = #{dvno}
+    </select>
+</mapper>

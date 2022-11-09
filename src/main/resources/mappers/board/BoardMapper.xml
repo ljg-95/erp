@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="sjht.erp.board.mapper.BoardMapper">
+    <sql id="boardColumns">
+        bno
+        , empno
+        , title
+        , content
+        , createtime
+        , modifiedtime
+        , boardtype
+        , boardcount
+    </sql>
+
+    <!-- 게시글 조회 -->
+    <select id="boardList" resultType="sjht.erp.board.dto.BoardResponse">
+        SELECT
+        <include refid="boardColumns" />
+        FROM
+            board
+        ORDER BY
+            bno DESC
+
+    </select>
+
+    <!-- 게시글 상세정보 -->
+    <select id="boardDetail" parameterType="int"
+            resultType="sjht.erp.board.dto.BoardResponse">
+        SELECT
+            <include refid="boardColumns" />
+        FROM
+            board
+        WHERE
+            bno = #{bno}
+    </select>
+
+    <!-- 게시글 등록 -->
+    <insert id="boardInsert" parameterType="sjht.erp.board.dto.BoardRequest"
+            useGeneratedKeys="true" keyProperty="bno">
+        INSERT INTO board (
+            bno, empno, title, content, createtime, boardcount
+        ) VALUES (
+              #{bno}
+            , #{empno}
+            , #{title}
+            , #{content}
+            , NOW()
+            , 0
+            )
+    </insert>
+
+    <!-- 게시글 수정 -->
+    <update id="boardUpdate" parameterType="sjht.erp.board.dto.BoardRequest">
+        UPDATE board
+        SET
+              modified = NOW()
+            , title = #{title}
+            , content = #{content}
+        WHERE
+            bno = #{bno}
+    </update>
+
+    <!-- 게시글 삭제 -->
+    <delete id="boardDelete" parameterType="int">
+        DELETE
+        FROM
+            board
+        WHERE
+            bno = #{bno}
+    </delete>
+
+</mapper>

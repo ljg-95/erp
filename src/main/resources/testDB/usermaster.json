@@ -1,0 +1,16 @@
+
+
+[
+	{
+		"usertype" : "ROLE_A",
+		"username" : "사원"
+	},
+	{
+		"usertype" : "ROLE_B",
+		"username" : "인사/총무"
+	},
+	{
+		"usertype" : "ROLE_C",
+		"username" : "임원"
+	}
+]

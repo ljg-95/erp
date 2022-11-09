@@ -1,0 +1,1337 @@
+<!DOCTYPE html>
+<html lang="en" layout:decorate="~{layout/layout_form}">
+<th:blcok layout:fragment="content">
+
+    <head>
+        <meta charset="UTF-8">
+        <title>I5-29 > 인사 관리</title>
+        <link href="/css/hrms/hrms.css" rel="stylesheet" />
+        <style>
+            /* input:invalid {
+                border: red solid 3px;
+            } */
+
+            /* input:valid {
+                border: green solid 3px;
+            } */
+        </style>
+    </head>
+
+    <body>
+        <div id="empList">
+            <div id="layoutSidenav_content">
+                <main>
+                    <!-- 메뉴 네비게이터 -->
+                    <header class="page-header page-header-compact page-header-light border-bottom bg-white">
+                        <div class="container-fluid">
+                            <div class="page-header-content">
+                                <div class="row align-items-center justify-content-between pt-3">
+                                    <div class="col-auto mb-3">
+                                        <h1 class="page-header-title">
+                                            <div class="page-header-icon"><i data-feather="user"></i></div>
+                                            HRMS - 사원 조회
+                                        </h1>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </header>
+                    <!-- page header background -->
+                    <header class="page-header page-header-dark bg-gray-900 pb-10">
+                        <div class="container">
+                            <div class="page-header-content pt-2">
+                            </div>
+                        </div>
+                    </header>
+                    <!-- Main content: 사원 리스트 출력 -->
+                    <div class="container mt-n10">
+                        <div class="card mb-4">
+                            <div class="card-header">사원 리스트</div>
+                            <div class="boardTop">
+                                <div class="card-body">
+                                    <div>
+                                        <span>총 {{ empList.length }} 명의 사원 중 검색 결과 : {{ pageList.length }} 명</span>
+                                        <!-- Button trigger modal -->
+                                        <button type="button" class="btn btn-facebook button-middle"
+                                            data-bs-backdrop="static" data-bs-toggle="modal"
+                                            data-bs-target="#empRegistModal">
+                                            사원 등록
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <div class="datatable">
+                                        <form>
+                                            <!-- 사원 검색 Form Row -->
+                                            <div class="form-row">
+                                                <!-- 부서 검색 -->
+                                                <div class="form-group col-md-1.5">
+                                                    <label for="departmentFormControlSelect">부서</label>
+                                                    <select class="form-select form-control-solid"
+                                                        id="departmentFormControlSelect" v-model="department"
+                                                        @change="setDepartments(department)">
+                                                        <option v-for="(department, i) in departmentList"
+                                                            key="department.departmentname">{{ department.departmentname
+                                                            }}
+                                                        </option>
+                                                    </select>
+                                                </div>
+                                                <!-- 직급 검색 -->
+                                                <div class="form-group col-md-1.5">
+                                                    <label for="gradeFormControlSelect">직급</label>
+                                                    <select class="form-select form-control-solid"
+                                                        id="gradeFormControlSelect" v-model="grade"
+                                                        @change="setGrades(grade)">
+                                                        <option v-for="(grade, i) in gradeList" key="grade.gradename">{{
+                                                            grade.gradename }}</option>
+                                                    </select>
+                                                </div>
+                                                <!-- 퇴직여부 검색 -->
+
+                                                <!-- 입사일자 검색 (Date Range Picker) -->
+                                                <div class="form-group col-md-2">
+                                                    <label for="entrydate">입사일자&nbsp;</label>
+                                                    <i class="mr-2 text-primary" data-feather="calendar"></i>
+                                                    <input type="text" name="entrydate"
+                                                        class="form-select form-control-solid date" />
+                                                </div>
+                                                <!-- 퇴사일자 검색 (Date Range Picker) -->
+                                                <div class="form-group col-md-2">
+                                                    <label for="retiredate">퇴사일자&nbsp;</label>
+                                                    <i class="mr-2 text-primary" data-feather="calendar"></i>
+                                                    <input type="text" name="retiredate"
+                                                        class="form-select form-control-solid date" />
+                                                </div>
+                                                <!-- text 검색 -->
+                                                <div class="form-group col-md-3">
+                                                    <label for="retireFormControlSelect">검색</label>
+                                                    <div class="input-group input-group-joined input-group-solid">
+                                                        <select class="form-select form-control-solid"
+                                                            id="retireFormControlSelect" v-model="menu"
+                                                            v-on="setMenu(menu)">
+                                                            <option value="전체" selected>전체</option>
+                                                            <option value="searchName">사원명</option>
+                                                            <option value="searchEmpno">사번</option>
+                                                        </select>
+                                                        <input class="form-control form-control-sm" type="text"
+                                                            placeholder="Search" aria-label="Search" v-model="search"
+                                                            v-on="searchEmp(search)">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </form>
+
+
+                                        <!-- 사원 리스트 -->
+                                        <table class="table table-bordered table-hover" id="dataTable" width="100%"
+                                            cellspacing="0">
+                                            <thead>
+                                                <tr>
+                                                    <th class="d-none d-xl-table-cell"
+                                                        v-for="(headerNameList, i) in headerNameList" :key="i">{{
+                                                        headerNameList }}</th>
+                                                </tr>
+                                            </thead>
+                                            <tfoot>
+                                                <tr>
+                                                    <th class="d-none d-xl-table-cell"
+                                                        v-for="(headerNameList, i) in headerNameList" :key="i">{{
+                                                        headerNameList }}</th>
+                                                </tr>
+                                            </tfoot>
+                                            <!-- 사원 검색 필터 -->
+                                            <tbody v-for="(emp, i) in paginatedData" key="emp.empno">
+
+
+                                                <tr>
+
+
+                                                    <!-- <tr v-show="(emp.departmentname === department || department === '전체') &&
+                                            (emp.gradename === grade || grade === '전체') &&
+                                            (emp.retireyn === retireyn || retireyn === '전체') &&
+
+                                            ( (menu === '전체') && ( emp.name.includes(search) || emp.empno==search || search=='' ) ||
+                                            (menu === 'searchName' && (emp.name.includes(search) ||search==='')) ||
+                                            (menu === 'searchEmpno' && (emp.empno==search || search==='')) )"> -->
+
+                                                    <td>
+                                                        <div style="text-align: center">
+                                                            <input class="form-check-input" type="checkbox"
+                                                                id="checkboxNoLabel" value="" aria-label="...">
+                                                        </div>
+                                                    </td>
+                                                    <td class="d-none d-xl-table-cell">{{ emp.empno }}</td>
+                                                    <td class="d-none d-xl-table-cell">{{ emp.username }}</td>
+                                                    <td class="d-none d-xl-table-cell">{{ emp.name }}</td>
+                                                    <td class="d-none d-xl-table-cell">{{ emp.departmentname }}</td>
+                                                    <td><span class="badge bg-success">{{ emp.gradename }}</span></td>
+                                                    <td class="d-none d-xl-table-cell">{{ emp.tel }}</td>
+                                                    <td class="d-none d-xl-table-cell">{{ emp.mail }}</td>
+                                                    <td class="d-none d-xl-table-cell">{{ emp.entrydate }}</td>
+                                                    <td class="d-none d-xl-table-cell"><span
+                                                            v-if="emp.retireyn === 'n'">0</span></td>
+                                                    <td class="d-none d-xl-table-cell"><span
+                                                            v-if="emp.restyn === 'y'">0</span></td>
+                                                    <td class="d-none d-xl-table-cell">{{ emp.retiredate }}</td>
+                                                    <td>
+                                                        <button type="button" class="btn btn-facebook btn-xs"
+                                                            data-bs-backdrop="static" data-bs-toggle="modal"
+                                                            data-bs-target="#empDetailModal" @click="getEmp(i)">상세조회
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                        <footer>
+                                            <!-- 페이징 처리 하기 -->
+                                            <div class="btn-cover" style="text-align: right">
+                                                <button :disabled="pageNum === 0" @click="prevPage" class="btn-hrms">
+                                                  이전
+                                                </button>
+                                                <span class="page-count">{{ pageNum + 1 }} / {{ pageCount }} 페이지</span>
+                                                <button :disabled="pageNum >= pageCount - 1" @click="nextPage" class="btn-hrms">
+                                                  다음
+                                                </button>
+                                            </div>
+                                        </footer>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                </main>
+                <th:block th:replace="layout/footer::footer"></th:block>
+            </div>
+            <!-- 여기를 수정중 입니다. 
+여기를 수정중 입니다.-->
+
+            <!-- 사원 상세 조회 모달 시작 -->
+            <div class="col-xl-8">
+                <div class="modal fade" id="empDetailModal" data-bs-backdrop="static" data-bs-keyboard="false"
+                    tabindex="-1" role="dialog" aria-labelledby="empDetailModalLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+                        <div class="modal-content">
+                            <div class="modal-body p-0">
+                                <!-- details card -->
+                                <div class="card mb-4">
+                                    <div class="card-header">사원 상세 조회</div>
+                                    <!-- card-body -->
+                                    <div class="card-body pb-3" id="card-body-padding">
+                                        <form>
+                                            <div id="card-scroll">
+                                                <!-- Form Row 1 (기본 정보 조회) -->
+                                                <div class="form-row">
+                                                    <!-- Form Group (사원 증명사진) -->
+                                                    <div class="form-group col-md-4" style="text-align: center">
+                                                        <img :src="physicalpath" style="height: 200; width:143px"
+                                                            onerror="this.src='/images/noProfile.png'" />
+                                                    </div>
+                                                    <!-- Form Group (개인정보) -->
+                                                    <div class="form-group col-md-4">
+                                                        <label label class="small mb-1" for="empno">사번</label>
+                                                        <input type="text" class="form-control form-control-sm"
+                                                            id="empno" :placeholder="empDetail.empno" readonly>
+
+                                                        <label label class="small mb-1" for="name">사원명</label>
+                                                        <input type="text" class="form-control form-control-sm"
+                                                            id="name" :placeholder="empDetail.name" readonly>
+
+                                                        <label label class="small mb-1" for="regno">주민등록번호</label>
+                                                        <div>
+                                                            <input type="text" class="form-control form-control-sm"
+                                                                id="regno1" :placeholder="preregno"
+                                                                style="width: 47%; display: inline-block" readonly>-
+                                                            <input type="text" class="form-control form-control-sm"
+                                                                id="regno2" :placeholder="sufregno"
+                                                                style="width: 48%; display: inline-block;" readonly>
+                                                        </div>
+
+                                                        <label label class="small mb-1" for="tel">연락처</label>
+                                                        <div>
+                                                            <input type="tel" class="form-control form-control-sm"
+                                                                id="tel1" :placeholder="tel1"
+                                                                style="width: 30%; display: inline-block;" readonly>-
+                                                            <input type=" tel" class="form-control form-control-sm"
+                                                                id="tel2" :placeholder="tel2"
+                                                                style="width: 30%; display: inline-block;" readonly>-
+                                                            <input type="tel" class="form-control form-control-sm"
+                                                                id="tel3" :placeholder="tel3"
+                                                                style="width: 30%; display: inline-block;" readonly>
+                                                        </div>
+                                                    </div>ㅇㅇ 
+                                                    <!-- Form Group (개인정보2) -->
+                                                    <div class="form-group col-md-4">
+                                                        <label label class="small mb-1" for="password">비밀번호</label>
+                                                        <input type="password" class="form-control form-control-sm"
+                                                            id="password" :placeholder="empDetail.password" readonly>
+
+                                                        <label label class="small mb-1" for="gender">성별</label>
+                                                        <div class="form-control form-control-sm border-0">
+                                                            <div class="form-check form-check-inline col-md-5">
+                                                                <input class="form-check-input" type="radio"
+                                                                    name="gender" id="gender" value="남"
+                                                                    :checked="empDetail.gender === '남'" disabled>
+                                                                <label class="form-check-label" for="gender">남</label>
+                                                            </div>
+                                                            <div class="form-check form-check-inline">
+                                                                <input class="form-check-input" type="radio"
+                                                                    name="gender" id="gender" value="여"
+                                                                    :checked="empDetail.gender === '여'" disabled>
+                                                                <label class="form-check-label" for="gender">여</label>
+                                                            </div>
+                                                        </div>
+                                                        <label label class="small mb-1" for="school">최종학력</label>
+                                                        <input type="text" class="form-control form-control-sm"
+                                                            id="school" :placeholder="empDetail.school" readonly>
+
+                                                        <label label class="small mb-1" for="mail">이메일</label>
+                                                        <input type="email" class="form-control form-control-sm"
+                                                            id="mail" :placeholder="empDetail.mail" readonly>
+                                                    </div>
+                                                </div>
+                                                <!-- Form Row 2 (주소 등록) -->
+                                                <div class="form-row">
+                                                    <div class="form-group col-md-2" style="align-self: end">
+                                                        <input type="button" class="btn btn-outline-dark btn-sm"
+                                                            style="height: 26px; width: 103px; pointer-events: none; user-select: none;"
+                                                            value="주소"><br>
+                                                    </div>
+                                                    <!-- Form Group (주소) -->
+                                                    <div class="form-group col-md-10">
+                                                        <label class="small mb-1" for="addr">주소</label>
+                                                        <input type="text" class="form-control form-control-sm"
+                                                            id="addr" :placeholder="empDetail.addr" readonly>
+                                                    </div>
+                                                    <!-- Form Group (상세주소) -->
+                                                    <div class="form-group col-md-8">
+                                                        <label class="small mb-1" for="addrdetail">상세주소</label>
+                                                        <input type="text" class="form-control form-control-sm"
+                                                            id="addrdetail" :placeholder="empDetail.addrdetail"
+                                                            readonly>
+                                                    </div>
+                                                    <!-- Form Group (우편번호) -->
+                                                    <div class="form-group col-md-4">
+                                                        <label class="small mb-1" for="zipcode">우편번호</label>
+                                                        <input type="text" class="form-control form-control-sm"
+                                                            id="zipcode" :placeholder="empDetail.zipcode" readonly>
+                                                    </div>
+                                                </div>
+                                                <!-- Form Row 3 (월급통장 등록) -->
+                                                <div class="form-row">
+                                                    <!-- Form Group (은행) -->
+                                                    <div class="form-group col-md-4">
+                                                        <label class="small mb-1" for="bankcd">은행</label>
+                                                        <input type="text" class="form-control form-control-sm"
+                                                            id="bankcd" :placeholder="empDetail.bankname" readonly>
+                                                    </div>
+                                                    <!-- Form Group (계좌번호) -->
+                                                    <div class="form-group col-md-8">
+                                                        <label class="small mb-1" for="account">계좌번호</label>
+                                                        <input type="text" class="form-control form-control-sm"
+                                                            id="account" :placeholder="empDetail.account" readonly>
+                                                    </div>
+                                                </div>
+                                                <!-- Form Row 4 (부서/직무/권한 등록) -->
+                                                <div class="form-row">
+                                                    <!-- Form Group (부서) -->
+                                                    <div class="form-group col-md-4">
+                                                        <label class="small mb-1" for="departmentcd">부서</label>
+                                                        <input type="text" class="form-control form-control-sm"
+                                                            id="departmentcd" :placeholder="empDetail.departmentname"
+                                                            readonly>
+                                                    </div>
+                                                    <!-- Form Group (직무) -->
+                                                    <div class="form-group col-md-4">
+                                                        <label class="small mb-1" for="gradecd">직무</label>
+                                                        <input type="text" class="form-control form-control-sm"
+                                                            id="gradecd" :placeholder="empDetail.gradename" readonly>
+                                                    </div>
+                                                    <!-- Form Group (권한) -->
+                                                    <div class="form-group col-md-4">
+                                                        <label class="small mb-1" for="usertype">권한</label>
+                                                        <input type="text" class="form-control form-control-sm"
+                                                            id="usertype" :placeholder="empDetail.username" readonly>
+                                                    </div>
+                                                </div>
+                                                <!-- Form Row 5 (재직여부/입사일/퇴사일 등록) -->
+                                                <div class="form-row">
+                                                    <!-- Form Group (재직구분) -->
+                                                    <div class="form-group col-md-4">
+                                                        <label label class="small mb-1" for="empStatus">재직구분</label>
+                                                        <div class="form-control form-control-sm border-0"
+                                                            id="empStatus">
+                                                            <div class="form-check form-check-inline">
+                                                                <input class="form-check-input" type="radio"
+                                                                    name="empStatus" id="retire_n" value="n"
+                                                                    :checked="empDetail.retireyn === 'n'" disabled>
+                                                                <label class="form-check-label"
+                                                                    for="retire_n">재직</label>
+                                                            </div>
+                                                            <div class="form-check form-check-inline">
+                                                                <input class="form-check-input" type="radio"
+                                                                    name="empStatus" id="rest_y" value="y"
+                                                                    :checked="empDetail.restyn === 'y'" disabled>
+                                                                <label class="form-check-label" for="rest_y">휴직</label>
+                                                            </div>
+                                                            <div class="form-check form-check-inline">
+                                                                <input class="form-check-input" type="radio"
+                                                                    name="empStatus" id="retire_y" value="y"
+                                                                    :checked="empDetail.retireyn === 'y'" disabled>
+                                                                <label class="form-check-label"
+                                                                    for="retire_y">퇴직</label>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <!-- Form Group (입사일) -->
+                                                    <div class="form-group col-md-4">
+                                                        <label class="small mb-1" for="entrydate">입사일</label>
+                                                        <input type="text" class="form-control form-control-sm"
+                                                            id="entrydate" :placeholder="empDetail.entrydate" readonly>
+                                                    </div>
+                                                    <!-- Form Group (퇴사일) -->
+                                                    <div class="form-group col-md-4">
+                                                        <label class="small mb-1" for="retiredate">퇴사일</label>
+                                                        <input type="text" class="form-control form-control-sm"
+                                                            id="retiredate" :placeholder="empDetail.retiredate"
+                                                            readonly>
+                                                    </div>
+                                                </div>
+                                                <!-- Form Row 6 (근무연차/연봉/퇴직금 등록) -->
+                                                <div class="form-row">
+                                                    <!-- Form Group (근무연차) -->
+                                                    <div class="form-group col-md-4">
+                                                        <label label class="small mb-1"
+                                                            for="privateinsurance">근무연차</label>
+                                                        <input type="text" class="form-control form-control-sm"
+                                                            id="privateinsurance"
+                                                            :placeholder="empDetail.privateinsurance" readonly>
+                                                    </div>
+                                                    <!-- Form Group (연봉) -->
+                                                    <div class="form-group col-md-4">
+                                                        <label class="small mb-1" for="yearsalary">연봉</label>
+                                                        <input type="text" class="form-control form-control-sm"
+                                                            id="yearsalary" :placeholder="empDetail.yearsalary"
+                                                            readonly>
+                                                    </div>
+                                                    <!-- Form Group (퇴직금) -->
+                                                    <div class="form-group col-md-4">
+                                                        <label label class="small mb-1" for="retirementpay">퇴직금</label>
+                                                        <input type="text" class="form-control form-control-sm"
+                                                            id="retirementpay" :placeholder="empDetail.retirementpay"
+                                                            readonly>
+                                                    </div>
+                                                </div>
+                                                <!-- 기타 -->
+                                                <div class="form-row">
+                                                    <!-- Form Group (퇴사사유 등록) -->
+                                                    <div class="form-group col-md-12">
+                                                        <label class="small mb-1" for="retirenote">퇴사사유</label>
+                                                        <textarea class="form-control" id="retirenote"
+                                                            :placeholder="empDetail.retirenote" rows="1"
+                                                            readonly></textarea>
+                                                    </div>
+                                                    <!-- Form Group (비고 등록) -->
+                                                    <div class="form-group col-md-12">
+                                                        <label class="small mb-1" for="memo">비고</label>
+                                                        <textarea class="form-control" id="memo"
+                                                            :placeholder="empDetail.memo" rows="3" readonly></textarea>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <!-- 버튼 -->
+                                            <div class="text-center">
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-outline-dark btn-sm"
+                                                        data-bs-dismiss="modal" style="width: 4rem">닫기
+                                                    </button>
+                                                    <button class="btn btn-outline-success shadow-sm btn-sm"
+                                                        type="submit" @click="regist" style="width: 4rem">수정
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div><!-- 사원 상세 조회 모달 끝 -->
+        </div>
+        <!-- empList 끝 -->
+
+
+        <!-- 사원 등록 모달 시작 -->
+        <div class="col-xl-8" id="empRegist">
+            <div class="modal fade" id="empRegistModal" data-bs-backdrop="static" tabindex="-1" role="dialog"
+                aria-labelledby="empRegistModalTitle" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+                    <div class="modal-content">
+                        <div class="modal-body p-0">
+                            <!-- details card -->
+                            <div class="card mb-4">
+                                <div class="card-header">사원 등록</div>
+                                <!-- card-body -->
+                                <div class="card-body pb-3" id="card-body-padding">
+                                    <form class="validation-form" novalidate role="form text-left">
+                                        <div id="card-scroll">
+                                            <!-- Form Row 1 (기본 정보 등록) -->
+                                            <div class="form-row">
+                                                <!-- Form Group (사원 증명사진) -->
+                                                <div class="form-group col-md-4" style="text-align: center">
+                                                    <img :src="physicalpath" style="height: 200; width:143px"
+                                                        onerror="this.src='/images/noProfile.png'" />
+                                                    <input class="form-control form-control-sm" id="idPicture"
+                                                        type="file" @change="uploadImage" accept="image/*" />
+                                                    <div class="invalid-feedback">
+                                                        사원의 증명사진을 첨부해주세요.
+                                                    </div>
+                                                </div>
+                                                <!-- Form Group (개인정보) -->
+                                                <div class="form-group col-md-4">
+                                                    <label label class="small mb-1" for="empno">사번</label>
+                                                    <input type="text" class="form-control form-control-sm" id="empno"
+                                                        :placeholder="empno" disabled>
+
+                                                    <label label class="small mb-1" for="name">사원명</label>
+                                                    <input type="text" class="form-control form-control-sm" id="name"
+                                                        placeholder="" v-model="name" required>
+                                                    <div class="invalid-feedback">
+                                                        사원명을 입력해주세요.
+                                                    </div>
+
+                                                    <label label class="small mb-1" for="regno">주민등록번호</label>
+                                                    <div>
+                                                        <input type="text" class="form-control form-control-sm"
+                                                            id="regno1" v-model="regno1" maxlength="6"
+                                                            pattern="^[0-9]{6}"
+                                                            onkeyup="next(this.value, 6, 'regno2'); preventKr(this);"
+                                                            onkeydown="checkNum(event, this.value)"
+                                                            style="width: 47%; display: inline-block" required>-
+                                                        <input type="text" class="form-control form-control-sm"
+                                                            id="regno2" v-model="regno2" maxlength="7"
+                                                            patttern="^[0-9]{7}" onkeyup="preventKr(this)"
+                                                            onkeydown="checkNum(event, this.value)"
+                                                            style="width: 48%; display: inline-block;" required>
+                                                    </div>
+                                                    <div class="invalid-feedback">
+                                                        주민등록번호를 입력해주세요.
+                                                    </div>
+
+                                                    <label label class="small mb-1" for="tel">연락처</label>
+                                                    <div>
+                                                        <input type="tel" class="form-control form-control-sm" id="tel1"
+                                                            v-model="tel1" maxLength="3" pattern="^01[0-9]{1}"
+                                                            onkeyup="next(this.value, 3, 'tel2'); preventKr(this)"
+                                                            onkeydown="checkNum(event, this.value)"
+                                                            style="width: 30%; display: inline-block;" required>-
+                                                        <input type=" tel" class="form-control form-control-sm"
+                                                            id="tel2" v-model="tel2" maxLength="4" pattern="^[0-9]{4}"
+                                                            onkeyup="next(this.value, 4, 'tel3'); preventKr(this)"
+                                                            onkeydown="checkNum(event, this.value)"
+                                                            style="width: 30%; display: inline-block;" required>-
+                                                        <input type="tel" class="form-control form-control-sm" id="tel3"
+                                                            v-model="tel3" maxLength="4" pattern="^[0-9]{4}"
+                                                            onkeyup="preventKr(this)"
+                                                            onkeydown="checkNum(event, this.value)"
+                                                            style="width: 30%; display: inline-block;" required>
+                                                    </div>
+                                                    <div class="invalid-feedback">
+                                                        전화번호를 입력해주세요.
+                                                    </div>
+                                                </div>
+                                                <!-- Form Group (개인정보2) -->
+                                                <div class="form-group col-md-4">
+                                                    <label label class="small mb-1" for="password">비밀번호</label>
+                                                    <input type="text" class="form-control form-control-sm"
+                                                        id="password" :placeholder="tel3" disabled>
+
+                                                    <label label class="small mb-1" for="gender">성별</label>
+                                                    <div class="form-control form-control-sm border-0">
+                                                        <div class="form-check form-check-inline col-md-5">
+                                                            <input class="form-check-input" type="radio" name="gender"
+                                                                id="gender" v-model="gender" value="남">
+                                                            <label class="form-check-label" for="gender">남</label>
+                                                        </div>
+                                                        <div class="form-check form-check-inline">
+                                                            <input class="form-check-input" type="radio" name="gender"
+                                                                id="gender" v-model="gender" value="여">
+                                                            <label class="form-check-label" for="gender">여</label>
+                                                        </div>
+                                                    </div>
+                                                    <div class="invalid-feedback">
+                                                        성별을 입력해주세요.
+                                                    </div>
+
+                                                    <label label class="small mb-1" for="school">최종학력</label>
+                                                    <input type="text" class="form-control form-control-sm" id="school"
+                                                        placeholder="중앙대학교" v-model="school" required>
+                                                    <div class="invalid-feedback">
+                                                        최종학력를 입력해주세요.
+                                                    </div>
+
+                                                    <label label class="small mb-1" for="mail">이메일</label>
+                                                    <input type="email" class="form-control form-control-sm" id="mail"
+                                                        placeholder="i5-29@erp.com" v-model="mail" required>
+                                                    <div class="invalid-feedback">
+                                                        메일 주소를 입력해주세요.
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <!-- Form Row 2 (주소 등록) -->
+                                            <div class="form-row">
+                                                <div class="form-group col-md-2" style="align-self: end">
+                                                    <input type="button" class="btn btn-outline-dark btn-sm"
+                                                        style="height: 26px; width: 103px;" @click="execDaumPostcode()"
+                                                        value="주소 검색"><br>
+                                                </div>
+                                                <!-- Form Group (주소) -->
+                                                <div class="form-group col-md-10">
+                                                    <label class="small mb-1" for="addr">주소</label>
+                                                    <input type="text" class="form-control form-control-sm" id="addr"
+                                                        v-model="addr">
+                                                    <div class="invalid-feedback">
+                                                        주소를 입력해주세요.
+                                                    </div>
+                                                </div>
+                                                <!-- Form Group (상세주소) -->
+                                                <div class="form-group col-md-8">
+                                                    <label class="small mb-1" for="addrdetail">상세주소</label>
+                                                    <input type="text" class="form-control form-control-sm"
+                                                        id="addrdetail" v-model="addrdetail">
+                                                    <div class="invalid-feedback">
+                                                        주소를 입력해주세요.
+                                                    </div>
+                                                </div>
+                                                <!-- Form Group (우편번호) -->
+                                                <div class="form-group col-md-4">
+                                                    <label class="small mb-1" for="zipcode">우편번호</label>
+                                                    <input type="text" class="form-control form-control-sm" id="zipcode"
+                                                        v-model="zipcode">
+                                                    <div class="invalid-feedback">
+                                                        주소를 입력해주세요.
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <!-- Form Row 3 (월급통장 등록) -->
+                                            <div class="form-row">
+                                                <!-- Form Group (은행) -->
+                                                <div class="form-group col-md-4">
+                                                    <label class="small mb-1" for="bankcd">은행</label>
+                                                    <select class="form-select form-select-sm" id="bankcd"
+                                                        v-model="bankcd">
+                                                        <option v-for="(bank, i) in bankList" :key="i"
+                                                            :value="bank.bankcd">{{ bank.bankname }}</option>
+                                                    </select>
+                                                    <div class="invalid-feedback">
+                                                        은행을 선택해주세요.
+                                                    </div>
+                                                </div>
+                                                <!-- Form Group (계좌번호) -->
+                                                <div class="form-group col-md-8">
+                                                    <label class="small mb-1" for="account">계좌번호</label>
+                                                    <input type="text" class="form-control form-control-sm" id="account"
+                                                        placeholder="1000-121-123753" v-model="account">
+                                                    <div class="invalid-feedback">
+                                                        계좌번호를 입력해주세요.
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <!-- Form Row 4 (부서/직무/권한 등록) -->
+                                            <div class="form-row">
+                                                <!-- Form Group (부서) -->
+                                                <div class="form-group col-md-4">
+                                                    <label class="small mb-1" for="departmentcd">부서 {{departmentcd}}
+                                                    </label>
+                                                    <select class="form-select form-select-sm" v-model="departmentcd">
+                                                        <option v-for="(department, i) in departmentList" :key="i"
+                                                            :value="department.departmentcd">{{
+                                                            department.departmentname }}</option>
+                                                    </select>
+                                                    <div class="invalid-feedback">
+                                                        부서를 선택해주세요.
+                                                    </div>
+                                                </div>
+                                                <!-- Form Group (직무) -->
+                                                <div class="form-group col-md-4">
+                                                    <label class="small mb-1" for="gradecd">직무</label>
+                                                    <select class="form-select form-select-sm" v-model="gradecd">
+                                                        <option v-for="(grade, i) in gradeList" :key="i"
+                                                            :value="grade.gradecd">{{ grade.gradename }}</option>
+                                                    </select>
+                                                    <div class="invalid-feedback">
+                                                        직무를 선택해주세요.
+                                                    </div>
+                                                </div>
+                                                <!-- Form Group (권한) -->
+                                                <div class="form-group col-md-4">
+                                                    <label class="small mb-1" for="usertype">권한</label>
+                                                    <select class="form-select form-select-sm" v-model="usertype">
+                                                        <option v-for="(usertype, i) in usertypeList" :key="i"
+                                                            :value="usertype.usertype">{{ usertype.username }}</option>
+                                                    </select>
+                                                    <div class="invalid-feedback">
+                                                        권한를 선택해주세요.
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <!-- Form Row 5 (재직여부/입사일/퇴사일 등록) -->
+                                            <div class="form-row">
+                                                <!-- Form Group (재직구분) -->
+                                                <div class="form-group col-md-4">
+                                                    <label label class="small mb-1" for="empStatus">재직구분</label>
+                                                    <div class="form-control form-control-sm border-0" id="empStatus">
+                                                        <div class="form-check form-check-inline">
+                                                            <input class="form-check-input" type="radio"
+                                                                name="empStatus" id="retire_n" v-model="retireyn"
+                                                                value="n">
+
+                                                            <label class="form-check-label" for="retire_n">재직</label>
+                                                        </div>
+                                                        <div class="form-check form-check-inline">
+                                                            <input class="form-check-input" type="radio"
+                                                                name="empStatus" id="rest_y" v-model="restyn" value="y">
+                                                            <label class="form-check-label" for="rest_y">휴직</label>
+                                                        </div>
+                                                        <div class="form-check form-check-inline">
+                                                            <input class="form-check-input" type="radio"
+                                                                name="empStatus" id="retire_y" v-model="retireyn"
+                                                                value="y">
+                                                            <label class="form-check-label" for="retire_y">퇴직</label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <!-- Form Group (재직구분 - 수정할때 다듬어서 쓰기) -->
+                                                <!-- <div class="form-group col-md-4">
+                                                    <label label class="small mb-1" for="empStatus">재직구분</label>
+                                                    <div class="form-control form-control-sm border-0" id="empStatus">
+                                                        <div class="form-check form-check-inline">
+                                                            <input class="form-check-input" type="radio"
+                                                                name="empStatus" id="retire_n" v-model="retireyn">
+                                                            <label class="form-check-label" for="retire_n">재직</label>
+                                                        </div>
+                                                        <div class="form-check form-check-inline">
+                                                            <input class="form-check-input" type="radio"
+                                                                name="empStatus" id="rest_y" v-model="restyn">
+                                                            <label class="form-check-label" for="rest_y">휴직</label>
+                                                        </div>
+                                                        <div class="form-check form-check-inline">
+                                                            <input class="form-check-input" type="radio"
+                                                                name="empStatus" id="retire_y" v-model="retireyn">
+                                                            <label class="form-check-label" for="retire_y">퇴직</label>
+                                                        </div>
+                                                    </div>
+                                                    <div class="invalid-feedback">
+                                                        재직어부를 입력해주세요.
+                                                    </div>
+                                                </div>  -->
+                                                <!-- Form Group (입사일) -->
+                                                <div class="form-group col-md-4">
+                                                    <label class="small mb-1" for="entrydate">입사일</label>
+                                                    <input type="text" class="form-control form-control-sm"
+                                                        id="entrydate" :value="entrydate" disabled>
+                                                </div>
+                                                <!-- Form Group (퇴사일) -->
+                                                <div class="form-group col-md-4">
+                                                    <label class="small mb-1" for="retiredate">퇴사일</label>
+                                                    <input type="text" class="form-control form-control-sm"
+                                                        id="retiredate" placeholder="-" disabled>
+                                                </div>
+                                            </div>
+                                            <!-- Form Row 6 (근무연차/연봉/퇴직금 등록) yearsalary retirementpay  privateinsurance -->
+                                            <div class="form-row">
+                                                <!-- Form Group (근무연차) -->
+                                                <div class="form-group col-md-4">
+                                                    <label label class="small mb-1" for="privateinsurance">근무연차</label>
+                                                    <input type="text" class="form-control form-control-sm"
+                                                        id="privateinsurance" placeholder="-" v-model="privateinsurance"
+                                                        disabled>
+                                                </div>
+                                                <!-- Form Group (연봉) -->
+                                                <div class="form-group col-md-4">
+                                                    <label class="small mb-1" for="yearsalary">연봉</label>
+                                                    <input type="text" class="form-control form-control-sm"
+                                                        id="yearsalary" v-model="yearsalary" maxlength="9"
+                                                        onkeyup="preventKr(this)"
+                                                        onkeydown="checkNum(event, this.value)">
+                                                    <div class="invalid-feedback">
+                                                        연봉을 입력해주세요.
+                                                    </div>
+                                                </div>
+                                                <!-- Form Group (퇴직금) -->
+                                                <div class="form-group col-md-4">
+                                                    <label label class="small mb-1" for="retirementpay">퇴직금</label>
+                                                    <input type="text" class="form-control form-control-sm"
+                                                        id="retirementpay" placeholder="-" v-model="retirementpay"
+                                                        disabled>
+                                                </div>
+                                            </div>
+
+
+
+                                            <div class="form-row">
+                                                <!-- Form Group (퇴사사유 등록) -->
+                                                <div class="form-group col-md-12">
+                                                    <label class="small mb-1" for="retirenote">퇴사사유</label>
+                                                    <textarea class="form-control" id="retirenote" v-model="retirenote"
+                                                        rows="1" disabled></textarea>
+                                                </div>
+                                                <!-- Form Group (비고 등록) -->
+                                                <div class="form-group col-md-12">
+                                                    <label class="small mb-1" for="memo">비고</label>
+                                                    <textarea class="form-control" id="memo" v-model="memo"
+                                                        rows="3"></textarea>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <!-- 버튼 -->
+                                        <div class="text-center">
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-outline-dark btn-sm"
+                                                    data-bs-dismiss="modal" style="width: 4rem">닫기
+                                                </button>
+                                                <button class="btn btn-outline-success shadow-sm btn-sm" type="submit"
+                                                    @click="regist" style="width: 4rem">등록
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- 사원 등록 모달 끝 -->
+
+
+
+
+        <!--             script start           -->
+
+
+
+        <script>
+            // 사원 조회 (리스트, 상세정보)
+            // 사원 조회 시 검색 기능 (부서, 직급, 입사일자, 퇴사일자, 사번, 사원명)
+            // 페이징 
+            const EmpList = {
+                data() {
+                    return {
+                        empList: [], // 사원 리스트
+                        empDetail: [], // 사원 상세정보
+                        headerNameList: ['no', '사번', '구분', '사원명', '부서', '직급', '휴대폰', '이메일',
+                            '입사일자', '재직여부', '휴직여부', '퇴사일자', '상세조회'], // 사원 리스트 컬럼명
+                        departmentList: [], // 부서코드 리스트
+                        gradeList: [], // 직급코드 리스트
+                        department: '전체', // 부서코드
+                        grade: '전체',  // 직급코드
+                        retireyn: '전체',
+
+                        menu: '전체', // text검색 - 조건
+                        search: '', // text검색 - 검색어
+                        checked: '',
+
+                        empCnt: '',
+
+                        // 사원 주민번호 조회 관련 필드
+                        preregno: '',
+                        sufregno: '',
+
+                        // 사원 전화번호 조회 관련 필드
+                        tel1: '',
+                        tel2: '',
+                        tel3: '',
+
+
+                        // pagination
+                        pageNum : 0,
+                        pageList:[]
+                    }
+                },
+                
+                // pagination
+                props:{
+                    pageSize: {
+                        type : Number,
+                        required: false,
+                        default: 1
+                    }
+                },
+
+                methods: {
+                    // 사원 리스트 추출
+                    getEmpList() {
+                        axios.post("http://localhost:8888/api/hrms")
+                            .then((response) => {
+                                this.empList = response.data;
+                                this.pageList = response.data;
+
+                            })
+                            .catch(error => console.error(error))
+                    },
+
+
+                    // 사원 추출
+                    getEmp(empno) {
+                        this.empDetail = this.pageList[empno];
+
+                        // 주민번호 앞/뒤자리 처리
+                        this.preregno = (this.empDetail.regno).substr(0, 6);
+                        this.sufregno = (this.empDetail.regno).substr(7, 13);
+
+                        // 연락처 앞/뒤자리 처리
+                        this.tel1 = (this.empDetail.tel).substr(0, 3);
+                        this.tel2 = (this.empDetail.tel).substr(3, 4);
+                        this.tel3 = (this.empDetail.tel).substr(7, 4);
+                    },
+
+                    // 사원 검색 시 조간: 부서
+                    findByDepartment() {
+                        axios.post("http://localhost:8888/api/hrms/departmentList")
+                            .then((response) => {
+                                all = { 'departmentcd': '0000', 'departmentname': '전체' }
+                                this.departmentList = response.data;
+                                this.departmentList.unshift(all);
+                            })
+                            .catch(error => console.error(error))
+                    },
+
+                    // 선택한 부서로 셋팅 
+                    setDepartments(department) {
+                        this.department = department;
+                        console.log(department);
+                        this.setPageList();
+                        
+                    },
+
+                    // 사원 검색 시 조건: 직급
+                    findByGrade() {
+                        axios.post("http://localhost:8888/api/hrms/gradeList")
+                            .then((response) => {
+                                all = { 'gradecd': '0000', 'gradename': '전체' }
+                                this.gradeList = response.data;
+                                this.gradeList.unshift(all);
+                            })
+                            .catch(error => console.error(error))
+                    },
+
+                    // 선택한 직급으로 셋팅
+                    setGrades(grade) {
+                        this.grade = grade;
+                        console.log(grade);
+                        this.setPageList();
+                    },
+
+                    // 선택한 퇴직여부로 셋팅
+                    setRetireyn(retireyn) {
+                        this.retireyn = retireyn;
+                        console.log(retireyn);
+                        this.setPageList();
+                    },
+
+                    // 선택한 검색 메뉴로 셋팅
+                    setMenu(menu) {
+                        this.menu = menu;
+                    },
+
+                    // 선택한 검색어로 셋팅
+                    searchEmp(search) {
+                        this.search = search;
+                        console.log(this.search);
+                    },
+
+                    //pagination
+                    nextPage(){
+                        this.pageNum += 1;
+                    },
+
+                    prevPage(){
+                        this.pageNum -= 1;
+                    },
+
+                    setPageList(){
+                        let temp = [];
+                        for(emp of this.empList){
+                            if((emp.departmentname === this.department || this.department === '전체') &&
+                                (emp.gradename === this.grade || this.grade === '전체') &&
+                                (emp.retireyn === this.retireyn || this.retireyn === '전체')){
+                                    temp.push(emp);
+                                    console.log(emp);
+                                }
+                        }
+                        this.pageList = temp;
+                        console.log(temp);
+                        console.log(this.empList);
+                        console.log(this.pageList);
+                    }
+                },
+                
+                computed:{
+                    pageCount(){
+                        let listLeng = this.pageList.length;
+                            listSize = this.pageSize,
+                            page = Math.floor(listLeng / listSize);
+
+                        if (listLeng==0)return 1;
+                        if(listLeng % listSize > 0) page += 1;
+
+                        return page;
+                    },
+
+                    paginatedData(){
+
+                        let start = this.pageNum * this.pageSize,
+                              end = start + this.pageSize;
+                            
+                        return this.pageList.slice(start, end);
+                    }
+                },
+
+                created() {
+                    this.getEmpList();
+                    this.findByDepartment();
+                    this.findByGrade();
+                }
+            }
+            Vue.createApp(EmpList).mount('#empList');
+        </script>
+
+        <script>
+            // 사원 정보 등록
+            // 사원 정보 수정
+            const RegistEmp = {
+                data() {
+                    return {
+                        empno: '',
+
+                        // 사원 데이터
+                        password: '',
+                        bankcd: '',
+                        departmentcd: '',
+                        gradecd: '',
+                        usertype: '',
+                        name: '',
+                        gender: '',
+                        mail: '',
+                        tel: '',
+                        zipcode: '',
+                        addr: '',
+                        addrdetail: '',
+                        regno: '',
+                        school: '',
+                        entrydate: new Date().toISOString().substr(0, 10).replace('T', ' '),
+                        retiredate: '',
+                        yearsalary: '', // 연봉
+                        salary: '',
+                        retirementpay: '',
+                        account: '',
+                        memo: '',
+                        retireyn: 'n', // 퇴직여부 (y -> 퇴직, n -> 재직)
+                        restyn: 'n', // 휴직여부
+                        privateinsurance: '',
+                        paymentst: '',
+                        totalal: '',
+                        useal: '',
+                        retirenote: '',
+
+                        // 사원 주민번호 저장 관련 필드
+                        regno1: '',
+                        regno2: '',
+
+                        // 사원 전화번호 저장 관련 필드
+                        tel1: '',
+                        tel2: '',
+                        tel3: '',
+
+                        // 사원 사진 저장 관련 필드
+                        file: '',
+                        fileno: '',
+                        filename: '',
+                        physicalpath: '',
+                        filesize: '',
+                        kind: '증명사진',
+                        relatedpath: '',
+                        dno: '',
+
+                        // 은행, 부서, 직급, 권한 - 코드 리스트 불러오기
+                        bankList: [],
+                        departmentList: [],
+                        gradeList: [],
+                        usertypeList: []
+
+                    }
+                },
+
+                methods: {
+                    // 사원 등록 
+                    regist() {
+                        axios.post("http://localhost:8888/api/hrms/regist", {
+                            password: this.tel3,
+                            bankcd: this.bankcd,
+                            departmentcd: this.departmentcd,
+                            gradecd: this.gradecd,
+                            usertype: this.usertype,
+                            name: this.name,
+                            gender: this.gender,
+                            mail: this.mail,
+                            tel: this.tel1 + this.tel2 + this.tel3,
+                            zipcode: this.zipcode,
+                            addr: this.addr,
+                            addrdetail: this.addrdetail,
+                            regno: this.regno1 + this.regno2,
+                            school: this.school,
+                            entrydate: this.entrydate,
+                            retiredate: this.retiredate,
+                            yearsalary: this.yearsalary,
+                            salary: (this.yearsalary / 12),
+                            retirementpay: this.retirementpay,
+                            account: this.account,
+                            memo: this.memo,
+                            retireyn: this.retireyn,
+                            restyn: this.restyn,
+                            privateinsurance: ((this.yearsalary / 12) * 0.03945),
+                            paymentst: this.paymentst,
+                            totalal: this.totalal,
+                            useal: this.useal,
+                            retirenote: this.retirenote,
+
+                            filename: this.filename,
+                            physicalpath: this.physicalpath,
+                            filesize: this.filesize,
+                            kind: this.kind,
+                            relatedpath: this.relatedpath,
+                            dno: this.dno
+                        })
+                            .then((response) => {
+                                console.log(this.name);
+                            })
+                            .catch(error => console.error(error))
+                    },
+
+                    // 사번 불러오기
+                    getEmpno() {
+                        axios.post("http://localhost:8888/api/hrms/empno")
+                            .then((response) => {
+                                this.empno = response.data;
+                                console.log(this.empno)
+                                console.log(response.data)
+                            })
+                            .catch(error => console.error(error))
+                    },
+
+                    // 사원 사진 등록 
+                    uploadImage(event) {
+                        var input = event.target;
+                        if (input.files && input.files[0]) {
+                            var reader = new FileReader();
+                            reader.onload = (e) => {
+                                this.physicalpath = e.target.result;
+                                console.log(e.target.result);
+
+                                console.log("e.target.file" + this.file[0]);
+                            }
+                            reader.readAsDataURL(input.files[0]);
+                        }
+                    },
+
+                    // 사원 주소 등록 
+                    execDaumPostcode() {
+                        new daum.Postcode({
+                            oncomplete: (result) => {
+
+                                if (this.addrdetail !== '') { // 상세주소 초기화
+                                    this.addrdetail = '';
+                                }
+
+                                if (result.userSelectedType === 'R') {
+                                    this.addr = result.roadAddress; // 도로명주소 선택
+                                } else {
+                                    this.addr = result.jibunAddress; // 지번주소 선택 
+                                }
+
+                                this.zipcode = result.zonecode; // 새우편번호 
+
+                            }
+                        }).open();
+                    },
+
+                    // 은행 코드 리스트 
+                    getBankList() {
+                        axios.post("http://localhost:8888/api/hrms/bankList")
+                            .then((response) => {
+                                this.bankList = response.data;
+                            })
+                            .catch(error => console.error(error))
+                    },
+
+
+                    // 부서 코드 리스트 
+                    getDepartmentList() {
+                        axios.post("http://localhost:8888/api/hrms/departmentList")
+                            .then((response) => {
+                                this.departmentList = response.data;
+                            })
+                            .catch(error => console.error(error))
+                    },
+
+                    // 직급 코드 리스트 
+                    getGradeList() {
+                        axios.post("http://localhost:8888/api/hrms/gradeList")
+                            .then((response) => {
+                                this.gradeList = response.data;
+                            })
+                            .catch(error => console.error(error))
+                    },
+
+                    // 권한 코드 리스트 
+                    getUserTypeList() {
+                        axios.post("http://localhost:8888/api/hrms/usermasterList")
+                            .then((response) => {
+                                this.usertypeList = response.data;
+                            })
+                            .catch(error => console.error(error))
+                    },
+
+                    // // 수정
+                    // update() {
+                    //     axios.patch("http://localhost:8888/api/hrms/" + empno)
+                    //         .then((response) => {
+                    //             console.log(this.name);
+                    //         })
+                    //         .catch(error => console.error(error))
+                    // }
+
+                   
+                },
+
+                mounted() {
+                    this.getBankList();
+                    this.getDepartmentList();
+                    this.getGradeList();
+                    this.getUserTypeList();
+                    this.getEmpno();
+                }
+            }
+            Vue.createApp(RegistEmp).mount('#empRegist');
+        </script>
+
+        <!-- 다음 주소 API -->
+        <script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
+
+
+
+        <script>
+            // 사원 등록 validation
+            window.addEventListener('load', () => {
+                const forms = document.getElementsByClassName('validation-form');
+
+                Array.prototype.filter.call(forms, (form) => {
+                    form.addEventListener('submit', function (event) {
+                        if (form.checkValidity() === false) {
+                            event.preventDefault();
+                            event.stopPropagation();
+                        }
+
+                        form.classList.add('was-validated');
+                    }, false);
+                });
+            }, false);
+
+            // 입력 포커스 다음으로 이동
+            function next(val, len, nextId) {
+                if (val.length == len) {
+                    document.getElementById(nextId).focus();
+                }
+            };
+
+            // 숫자만 입력 가능
+            function checkNum(event) {
+                const key = event.key;
+                if ((key >= 0 && key < 10) || key == 'Backspace') {
+                    return true;
+                } else {
+                    event.preventDefault();
+                }
+            };
+
+            // 한글 입력 막기
+            function preventKr(obj) {
+                obj.value = obj.value.replace(/[^0-9.]/gi, "")
+            };
+        </script>
+
+
+        <script>
+            // 팝오버 초기화
+            $(function () {
+                $('[data-toggle="popover"]').popover()
+            });
+        </script>
+
+        <!-- 팝오버 -->
+        <!-- <button type="button" class="btn btn-primary" data-toggle="popover" title="Popover title" data-content="Lorem Ipsum Dolor Lorem Ipsum Dolor Lorem Ipsum Dolor">Click</button> -->
+
+        <!-- 부트스트랩 번들 -->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
+            crossorigin="anonymous"></script>
+
+
+        <!-- 달력 start -->
+        <script type="text/javascript" src="https://cdn.jsdelivr.net/jquery/latest/jquery.min.js"></script>
+        <script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
+        <script type="text/javascript"
+            src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
+        <link rel="stylesheet" type="text/css"
+            href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
+        <script>
+            // 입사일자, 퇴사일자 달력으로 검색 (Date Range Picker)
+            $(function () {
+                let start = moment().subtract(29, "days");
+                let end = moment();
+
+                function cb(start, end) {
+                    $(".date").html(
+                        start.format('YY-MM-DD') + " / " + end.format('YY-MM-DD'),
+                        
+                    );
+                }
+
+                $(".date").daterangepicker(
+                    {
+                        startDate: start,
+                        endDate: end,
+                        locale: {
+                            "separator": " ~ ",
+                            "format": 'YY-MM-DD',
+                        },
+                        ranges: {
+                            "오늘": [moment(), moment()],
+                            "어제": [
+                                moment().subtract(1, "days"),
+                                moment().subtract(1, "days"),
+                            ],
+                            "최근 7일": [moment().subtract(6, "days"), moment()],
+                            "최근 30일": [moment().subtract(29, "days"), moment()],
+                            "이번 달": [
+                                moment().startOf("month"),
+                                moment().endOf("month"),
+                            ],
+                            "지난 달": [
+                                moment().subtract(1, "month").startOf("month"),
+                                moment().subtract(1, "month").endOf("month"),
+                            ],
+                        },
+                    },
+                    cb(start, end)
+                );
+
+            });
+        </script>
+        <!-- 달력 end -->
+
+    </body>
+</th:blcok>
+
+</html>

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="sjht.erp.login.repository.UserMapper">
+    <select id="findUserByEmpno" resultType="sjht.erp.login.dto.EmployeeDto">
+        SELECT name, usertype, password, empno
+        FROM employee
+        WHERE empno = #{empno}
+    </select>
+
+    <insert id="save" parameterType="sjht.erp.login.dto.EmployeeDto">
+        INSERT INTO employee (name,password)
+        VALUES ( #{name},#{password} )
+    </insert>
+</mapper>

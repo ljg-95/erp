@@ -1,0 +1,48 @@
+.header {
+    border: 1px solid black;
+}
+
+.header_detail {
+    border: 1px solid black;
+    background: rgb(255, 255, 255);
+    padding: 5px;
+    text-align: left;
+    color: rgb(0, 0, 0);
+    font-size: 12px;
+    font-weight: normal;
+    vertical-align: middle;
+}
+
+.form_title {
+    background-color: rgb(226, 226, 226);
+    text-align: center;
+    border: 1px solid black;
+
+}
+
+.form_detail {
+    font-size: 10pt;
+    text-align: center;
+    border: 1px solid black;
+    height: 30px;
+}
+
+.subjectColumn {
+    border: 1px solid black;
+    background-color: rgb(226, 226, 226);
+    text-align: center;
+    padding: 5px;
+    font-size: 12px;
+    font-weight: normal;
+    vertical-align: middle;
+}
+
+.detailColumn {
+    border: 1px solid black;
+}
+
+a {
+
+    text-decoration: none;
+
+}

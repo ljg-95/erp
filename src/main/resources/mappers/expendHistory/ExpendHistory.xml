@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="sjht.erp.expendHistory.repository.ExpendHistoryMapper">
+
+    <select id="selectExpendHistory" resultType="sjht.erp.expendHistory.dto.SelectResultEHDto"
+            parameterType="sjht.erp.expendHistory.dto.SelectParameterEHDto">
+        select
+            eh.eno,
+            eh.dvno,
+            eh.empno,
+            eh.dvappname,
+            eh.dvappdate,
+            eh.dvamt
+        from expendhistory as eh
+            Inner Join expendinformation as ei on ei.dvno = eh.dvno
+            Inner Join erp.employee as e on e.empno = eh.empno
+        where
+            (date (eh.dvappdate) between #{start} and #{end})
+        <if test='empno != 0'>
+            and eh.empno = #{empno}
+        </if>
+
+        <if test='dvappname != null'>
+            and eh.dvappname = #{dvappname}
+        </if>
+        order by eh.eno desc
+    </select>
+
+    <select id="selectExpendHistoryByEno" resultType="sjht.erp.expendHistory.dto.SelectResultEHDto"
+            parameterType="Integer">
+        select
+            eh.eno,
+            eh.dvno,
+            eh.dvappname,
+            eh.dvappdate,
+            ac.divname,
+            de.briefs,
+            de.price,
+            eh.dvamt
+        from erp.expendhistory as eh
+                 Inner Join erp.detailexpend as de on de.dvno = eh.dvno
+                 Inner Join erp.accountcode as ac on ac.divcd = de.divcd
+        where eno = #{eno}
+    </select>
+
+    <select id="selectExpendHistoryByTotalPrice" resultType="sjht.erp.expendHistory.dto.SelectResultEHDto"
+        parameterType="sjht.erp.expendHistory.dto.SelectParameterEHDto">
+        select ac.divname ,sum(de.price) as 'total_divcd_price'
+        from erp.expendhistory as eh
+                 inner join erp.detailexpend as de on de.dvno = eh.dvno
+                 inner join erp.accountcode as ac on ac.divcd = de.divcd
+        where (date(eh.dvappdate) between #{start} and #{end})
+        group by ac.divcd
+    </select>
+</mapper>

@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en" layout:decorate="~{layout/layout_form}">
+<th:blcok layout:fragment="content" >
+	<link href="/css/login/loginfail.css" rel="stylesheet">
+	<script>
+		
+	</script>
+	<script>
+
+        function windowonload() {
+            const not = document.querySelector("#notification-container")
+
+			not.classList.add('show')
+  			setTimeout(() => {
+    		not.classList.remove('show')
+  			}, 1600)
+        }
+        window.onload = windowonload;
+    </script>
+
+	<main class="d-flex w-100" id="fail">
+
+		<div class="container d-flex flex-column">
+
+			<div class="row vh-100">
+				<div class="col-sm-10 col-md-8 col-lg-6 mx-auto d-table h-100">
+					
+					<div class="d-table-cell align-middle" style="padding-bottom: 215px;">
+						<div class="notification-container" id="notification-container">
+							<p style="margin:auto">로그인에 실패 하였습니다.<br> 비밀번호를 확인해 주세요</p>
+						</div>
+
+						<div class="text-center mt-4">
+							<p class="lead">
+								Welcome to Sung-jin</br>
+								Spread your wide wing.</br>
+								Sign in to your Employee number to continue
+							</p>
+						</div>
+
+						<div class="card" id="login">
+							<p class="placeholder-wave" style="margin:0;
+							-webkit-mask-image: linear-gradient(130deg,#0000 55%,rgb(0 0 0 / 43%) 75%,#0000 95%);
+							animation: placeholder-wave 1.56s linear infinite;">
+							<span id="place" class="placeholder col-12 bg-secondary placeholder-xs" style="  vertical-align: 0;
+							opacity:0;
+							display:-webkit-box;
+							border-radius : 0.25rem 0.25rem 0 0;"></span>
+						  </p>
+							<div class="card-body">
+								<div class="m-sm-4">
+									<form class="needs-validation" novalidate action="/api/login" method="post">
+										<div class="mb-4">
+											<label for="validationEmpno" class="form-label">사번</label>
+											<input class="form-control form-control-lg" id="validationEmpno" type="text" name="empno" placeholder="사번을 입력하세요." required/>
+											<div class="invalid-feedback">
+												유효한 사번을 입력하세요.(숫자)
+											</div>
+										</div>
+										<div class="mb-4">
+											<label for="validationPw" class="form-label">비밀번호</label>
+											<input class="form-control form-control-lg" id="validationPw" type="password" name="password" placeholder="비밀번호를 입력하세요." required/>
+											<div class="invalid-feedback">
+												비밀번호를 입력하세요.
+											</div>
+										</div>
+										<div>
+											<label class="form-check">
+            								<input class="form-check-input" type="checkbox" value="remember-me" name="remember-me" checked>
+            								<span class="form-check-label">Remember me next time</span>
+          									</label>
+										</div>
+										<div class="text-center mt-3">
+											<button type="submit" class="btn btn-lg btn-primary">Sign in</button>
+											<a href="/api/join" class="btn btn-lg btn-primary" methods="post">Sign up</a>
+										</div>
+									</form>
+								</div>
+							</div>
+						</div>
+
+					</div>
+				</div>
+			</div>
+		</div>
+	</main>
+
+	<script>
+	</script>
+	<script>
+
+    	(() => {
+
+			const forms = document.querySelectorAll('.needs-validation')
+			const element = document.getElementById('place');
+			
+  			Array.from(forms).forEach(form => {
+    			form.addEventListener('submit', event => {
+				const id = document.getElementById('validationEmpno').value;
+      			if (!form.checkValidity() || isNaN(id)) 
+				{
+        			event.preventDefault()
+        			event.stopPropagation()
+      			}
+				if(isNaN(id)){
+					document.getElementById('validationEmpno').value='';
+				}
+
+				if(form.checkValidity()&&!isNaN(id)){
+					element.style.opacity = '1';
+					sleep(2000)
+				}
+				
+      			form.classList.add('was-validated')
+    			}, false)
+  			});
+			
+			  
+		})()
+    </script>	
+
+</th:blcok>

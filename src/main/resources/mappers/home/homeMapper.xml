@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="sjht.erp.home.Mapper.HomeMapper">
+    <select id="getNoticeList" resultType="sjht.erp.common.vo.BoardVO">
+        SELECT bno, title, createtime
+        FROM board
+        WHERE boardtype = 'A'
+    </select>
+
+    <select id="getExpandInformationList" parameterType="int" resultType="sjht.erp.common.vo.ExpendInformationVO">
+        SELECT dvappyn, dvregdate, dvappdate, dvamt
+        FROM expendinformation
+        WHERE empno = #{empno}
+        ORDER BY dvregdate
+    </select>
+
+    <select id="getWorkTimeManagementList" parameterType="int" resultType="sjht.erp.common.vo.WorkTimeManagementVO">
+        SELECT approveryn, registdate, startdate, enddate
+        FROM worktimemanagement
+        WHERE empno = #{empno}
+        ORDER BY registdate
+    </select>
+
+    <select id="getEmployeeList" resultMap="EmpList">
+        SELECT empno, e.departmentcd, e.gradecd, name, mail, tel, d.departmentname, g.gradename
+        FROM employee as e
+        left join departmentcode as d on e.departmentcd= d.departmentcd
+        left join gradecode as g on e.gradecd = g.gradecd
+    </select>
+    <resultMap id="EmpList" type="sjht.erp.common.vo.EmployeeVO">
+        <id column="empno" property="empno"/>
+        <result column="name" property="name"/>
+        <result column="mail" property="mail"/>
+        <result column="tel" property="tel"/>
+
+        <association column="departmentcode" property="departmentcd" javaType="sjht.erp.common.vo.DepartmentCodeVO">
+            <id column ="departmentcd" property="departmentcd"/>
+            <result column="departmentname" property="departmentname"/>
+        </association>
+
+        <association column="gradecode" property="gradecd" javaType="sjht.erp.common.vo.GradeCodeVO">
+            <id column ="gradecd" property="gradecd"/>
+            <result column="gradename" property="gradename"/>
+        </association>
+    </resultMap>
+
+</mapper>

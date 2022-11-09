@@ -1,0 +1,25 @@
+<!-- vue3 -->
+<script src="https://unpkg.com/vue@3"></script>
+
+<div id="app">
+    <h1>
+        {{ message }}
+    </h1>
+</div>
+
+<script>
+    var app = Vue.createApp({
+        data() {
+            return {
+                message: 'Hello~ Vue'
+            }
+        }
+    }).mount('#app')
+</script>
+
+<style>
+    #app {
+        width: 100%;
+        text-align: center;
+    }
+</style>

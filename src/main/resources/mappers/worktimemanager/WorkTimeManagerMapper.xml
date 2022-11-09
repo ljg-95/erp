@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+
+<mapper namespace="sjht.erp.workinfo.repository.WorkTimeManagerMapper">
+    <!--사용자권한이 ROLE_C일때 -->
+    <select id="findWorkTimeInfo" resultType="sjht.erp.workinfo.dto.response.WorkInfoResponseDto"
+            parameterType="sjht.erp.workinfo.dto.request.WorkInfoRequestDto">
+        SELECT
+        w.tano,
+        w.empno,
+        e.name,
+        e.departmentcd,
+        d.departmentname,
+        w.registdate,
+        w.startdate,
+        w.enddate,
+        w.approverdate,
+        w.approver,
+        w.approveryn
+        FROM worktimemanagement w
+        left join employee e
+        on w.empno = e.empno
+        left join departmentcode d
+        on e.departmentcd = d.departmentcd
+        <where>
+            <if test="approveryn !='' and approveryn != 'all'">
+                approveryn = (#{approveryn})
+            </if>
+            <if test="start != null and end != null">
+                and(TIME(registdate) between #{start} and #{end})
+            </if>
+            <if test="name != ''">
+                and e.name = (#{name})
+            </if>
+            <if test="empno != 0">
+                and w.empno = (#{empno})
+            </if>
+        </where>
+        order by tano DESC
+    </select>
+
+    <!--사용자권한이 ROLE_A, ROLE_B일때-->
+    <select id="selectMyWorkTime" parameterType="Integer"
+            resultType="sjht.erp.workinfo.dto.response.WorkInfoResponseDto">
+        SELECT w.tano,
+               w.empno,
+               e.name,
+               e.departmentcd,
+               d.departmentname,
+               w.registdate,
+               w.startdate,
+               w.enddate,
+               w.approverdate,
+               w.approver,
+               w.approveryn
+        FROM worktimemanagement w
+                 left join employee e
+                           on w.empno = e.empno
+                 left join departmentcode d
+                           on e.departmentcd = d.departmentcd
+        where w.empno = (#{empno})
+        order by tano DESC
+    </select>
+    <select id="selectWorkTimeByTano" parameterType="Integer"
+            resultType="sjht.erp.workinfo.dto.response.WorkInfoResponseDto">
+        SELECT w.tano,
+               w.empno,
+               e.name,
+               e.departmentcd,
+               d.departmentname,
+               w.registdate,
+               w.startdate,
+               w.enddate,
+               w.approverdate,
+               w.approver,
+               w.approveryn,
+               w.reasonholiday
+        FROM worktimemanagement w
+                 left join employee e
+                           on w.empno = e.empno
+                 left join departmentcode d
+                           on e.departmentcd = d.departmentcd
+        where w.tano = (#{tano})
+    </select>
+</mapper>
+

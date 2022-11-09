@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en" layout:decorate="~{layout/layout_form}">
+<th:blcok layout:fragment="content">
+
+    <head>
+        <meta charset="UTF-8">
+
+
+        <link href="/css/expendInformation/modal.css" rel="stylesheet">
+        <link href="/css/hrms/hrms.css" rel="stylesheet" />
+
+        <title>지출 결의</title>
+    </head>
+
+    <body>
+        <header class="page-header page-header-compact page-header-light border-bottom bg-white">
+            <div class="container-fluid">
+                <div class="page-header-content">
+                    <div class="row align-items-center justify-content-between pt-3">
+                        <div class="col-auto mb-3">
+                            <h1 class="page-header-title">
+                                <div class="page-header-icon"><i data-feather="user"></i></div>
+                                HRMS - 지출 결의
+                            </h1>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+        <header class="page-header page-header-dark bg-gray-900 pb-10">
+            <div class="container">
+                <div class="page-header-content pt-2">
+                </div>
+            </div>
+        </header>
+        <div class="container mt-n10">
+            <div class="card mb-4">
+                <div class="card-header">지출 결의</div>
+                <div class="card-body">
+                    <div class="datatable">
+                        <div id="app" class="boardTop">
+                            <!--검색 폼-->
+                            <form v-on:submit.prevent method="post">
+                                <div class="form-row">
+                                    <div class="row col-12">
+                                        <!--   검색 폼 : 날짜   -->
+                                        <div class="form-group col-md-4">
+                                            <label for="startdate">검색 기간</label>
+                                            <i class="mr-2 text-primary" data-feather="calendar"></i>
+                                            <input v-model="startDvRegDate" id="startDvRegDate"
+                                                class="form-control form-control-solid" type="date">
+                                        </div>
+                                        <div class="form-group col-md-4">
+                                            <label for="enddate">&nbsp;</label>
+                                            <input v-model="endDvRegDate" id="endDvRegDate"
+                                                class="form-control form-control-solid" type="date">
+                                        </div>
+
+                                        <!--   검색 폼 : 승인 여부   -->
+                                        <div class="form-group col-md-2">
+                                            <label for="dvappyn">승인 여부</label>
+                                            <select class="form-select form-control-solid" name="dvappyn" id="dvappyn"
+                                                v-model="dvappyn">
+                                                <option value="all" selected>전체</option>
+                                                <option value="y">승인</option>
+                                                <option value="w">미승인</option>
+                                                <option value="n">반려</option>
+                                            </select>
+                                        </div>
+
+                                        <!--사원 이름 검색-->
+                                        <div class="form-group col-md-3">
+                                            <label for="empname">사원 이름</label>
+                                            <div class="input-group input-group-joined input-group-solid">
+                                                <input v-model="name" id="empname" class="form-control form-control-sm"
+                                                    type="text">
+                                            </div>
+                                        </div>
+                                        <!--for의 값과 input의 id 값이 다르면 오류-->
+                                        <!--사번 검색-->
+                                        <div class="form-group col-md-3">
+                                            <label for="empno">사원 번호</label>
+                                            <div class="input-group input-group-joined input-group-solid">
+                                                <input v-model="empno" id="empno" class="form-control form-control-sm"
+                                                    type="text">
+                                            </div>
+                                        </div>
+                                        <div class="form-group col-md-4"></div>
+                                        <!--   검색 폼 : 조회 버튼   -->
+                                        <div class="form-group col-md-2" style="display: grid; padding:1rem;">
+                                            <button type="submit" @click="postParam()" class="btn btn-dark btn-md"
+                                                id="submitBtn">조회</button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </form>
+
+                            <!--리스트 보여주기-->
+                            <div>
+                                <table class="expendListTable table" style="border: 10px;">
+                                    <!-- 데이터 헤더 출력 부분 -->
+                                    <thead>
+                                        <tr>
+                                            <th>결의번호</th>
+                                            <th>사번</th>
+                                            <th>이름</th>
+                                            <th>부서</th>
+                                            <th>신청날짜</th>
+                                            <th>지출금액</th>
+                                            <th>승인여부</th>
+                                            <th>상세보기</th>
+                                        </tr>
+                                    </thead>
+
+                                    <!-- 데이터 출력 부분 -->
+                                    <tbody class="allContent">
+                                        <tr id="expendList" v-for="result in expendList" :key="result.dvno">
+
+                                            <!-- 결의 번호 -->
+                                            <td>
+                                                {{result.dvno}}
+                                            </td>
+
+                                            <!-- 사번 -->
+                                            <td>
+                                                {{result.empno}}
+                                            </td>
+
+                                            <!-- 사원 이름 -->
+                                            <td>
+                                                {{result.name}}
+                                            </td>
+
+                                            <!-- 부서명 -->
+                                            <td>
+                                                {{result.departmentname}}
+                                            </td>
+
+                                            <!-- 날짜 -->
+                                            <td>
+                                                {{result.dvRegDate}}
+                                            </td>
+
+                                            <!-- 총 금액 -->
+                                            <td>
+                                                {{result.dvamt}}
+                                            </td>
+
+                                            <!-- 승인 여부 -->
+                                            <td>
+                                                {{result.dvappyn}}
+                                            </td>
+
+                                            <!-- 상세 조회 버튼 -->
+                                            <td class="detail-btn">
+                                                <button type="button" class="modal-btn" data-toggle="modal"
+                                                    onclick="detail_modalShow()" @click="getDvno(result.dvno)">상세보기
+                                                </button>
+                                            </td>
+                                        </tr>
+
+                                    </tbody>
+                                </table>
+                            </div>
+
+
+                            <!--modal-->
+                            <div class="modal fade" tabindex="-1" id="detail_modal" role="dialog"
+                                data-backdrop="static">
+                                <div class="modal-dialog modal-xl modal-dialog-centered">
+                                    <div class="modal-content">
+
+                                        <!--modal header-->
+                                        <div class="modal-header">
+                                            <button type="button" class="btn-close" aria-label="Close"
+                                                data-dismiss="modal" onclick="detail_modalHide()"></button>
+                                        </div>
+
+                                        <!--modal body-->
+                                        <div class="modal-body">
+                                            <div id="div_title">
+                                                <table
+                                                    style="border: solid rgb(255, 255, 255); width: 100%; border-collapse: collapse;">
+                                                    <tbody>
+                                                        <tr>
+                                                            <td style="background: white; height: 60px; text-align: center; color: black; font-size: 25px; font-weight: bold; vertical-align: middle;"
+                                                                colspan="2">
+                                                                지출결의서
+                                                            </td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td
+                                                                style="background: white; padding: 0px; color: black; font-size: 12px; font-weight: normal;">
+                                                                <table
+                                                                    style="border: 1px solid rgb(0, 0, 0); margin-top: 1px; border-collapse: collapse;">
+                                                                    <colgroup>
+                                                                        <col width="120">
+                                                                        <col width="180">
+                                                                    </colgroup>
+
+                                                                    <tbody>
+                                                                        <!-- 결의 번호 -->
+                                                                        <tr>
+                                                                            <td class="header"
+                                                                                style="border: 1px solid black">
+                                                                                결의번호
+                                                                            </td>
+                                                                            <td class="header_detail">
+                                                                                <div style="font-size: 9pt;">
+                                                                                    {{dvno}}
+                                                                                </div>
+                                                                            </td>
+                                                                        </tr>
+
+                                                                        <!-- 기안일 -->
+                                                                        <tr>
+                                                                            <td class="header">
+                                                                                기안일
+                                                                            </td>
+                                                                            <td class="header_detail">
+                                                                                <div style="font-size: 9pt;">
+                                                                                    {{dvRegDate}}
+                                                                                </div>
+                                                                            </td>
+                                                                        </tr>
+
+                                                                        <!-- 소속명 -->
+                                                                        <tr>
+                                                                            <td class="header">
+                                                                                소속
+                                                                            </td>
+                                                                            <td class="header_detail">
+                                                                                <div>
+                                                                                    <div style="font-size: 9pt;">
+                                                                                        {{departmentname}}
+                                                                                    </div>
+                                                                                </div>
+                                                                            </td>
+                                                                        </tr>
+
+                                                                        <!-- 기안자 -->
+                                                                        <tr>
+                                                                            <td class="header_title">
+                                                                                기안자
+                                                                            </td>
+                                                                            <td class="header_detail">
+                                                                                {{empname}}
+                                                                            </td>
+                                                                        </tr>
+
+                                                                    </tbody>
+                                                                </table>
+                                                            </td>
+
+                                                            <td
+                                                                style="padding: 0px; border: currentColor; text-align: right; color: black; font-size: 12px; font-weight: normal; vertical-align: top;">
+                                                                <div>
+                                                                    <span>
+                                                                        <strong>신청</strong>
+                                                                    </span>
+                                                                    &nbsp;&nbsp;
+                                                                    <span>
+                                                                        <strong>승인</strong>
+                                                                    </span>
+                                                                </div>
+                                                            </td>
+
+                                                        </tr>
+
+                                                    </tbody>
+                                                </table>
+                                            </div>
+
+                                            <br>
+
+                                            <div id="expendInformationWrapper" style="margin-top: 10px">
+                                                <table class="detailEI" style="width:100%; height: 100px;">
+                                                    <colgroup>
+                                                        <col width="140">
+                                                        <col width="180">
+                                                        <col width="250">
+                                                        <col width="110">
+                                                        <col width="120">
+                                                    </colgroup>
+
+                                                    <tbody>
+                                                        <div id="insertDetail">
+                                                            <tr>
+                                                                <!-- 사용 일자 -->
+                                                                <td class="subjectColumn">
+                                                                    <div style="font-size: 9pt;">
+                                                                        일 자
+                                                                    </div>
+                                                                </td>
+
+                                                                <!-- 분류 -->
+                                                                <td class="subjectColumn">
+                                                                    <div style="font-size: 9pt;">
+                                                                        분 류
+                                                                    </div>
+                                                                </td>
+
+                                                                <!-- 사용 내역 -->
+                                                                <td class="subjectColumn">
+                                                                    <div style="font-size: 9pt;">
+                                                                        사용 내역
+                                                                    </div>
+                                                                </td>
+
+                                                                <!-- 금액 -->
+                                                                <td class="subjectColumn">
+                                                                    <div style="font-size: 9pt;">
+                                                                        금 액
+                                                                    </div>
+                                                                </td>
+
+                                                                <!-- 비고 -->
+                                                                <td class="subjectColumn">
+                                                                    <div style="font-size: 9pt;">
+                                                                        비 고
+                                                                    </div>
+                                                                </td>
+
+                                                            </tr>
+
+                                                            <tr v-for="result in modalList" :key="result">
+
+                                                                <!-- 사용 일자  -->
+                                                                <td class="detailColumn" style="height: 29px;">
+                                                                    <input type="text" class="form-control"
+                                                                        :value="result.dvUseDate" readonly>
+                                                                </td>
+
+                                                                <!-- 분류 -->
+                                                                <td class="detailColumn">
+                                                                    <input type="text"
+                                                                        style="width: 100%; height: 100%; border: 0;"
+                                                                        :value="result.divname" readonly>
+                                                                </td>
+
+                                                                <!-- 사용 내역 -->
+                                                                <td class="detailColumn" style="height: 29px;">
+                                                                    <input type="text" class="form-control"
+                                                                        :value="result.detailuse" readonly>
+                                                                </td>
+
+                                                                <!-- 금액 -->
+                                                                <td class="detailColumn" style="height: 29px;">
+                                                                    <input type="text" class="form-control"
+                                                                        :value="result.price" readonly>
+                                                                </td>
+
+                                                                <!-- 비고 -->
+                                                                <td class="detailColumn" style="height: 29px;">
+                                                                    <input type="text" class="form-control"
+                                                                        :value="result.dvmemo" readonly>
+                                                                </td>
+                                                            </tr>
+                                                        </div>
+
+                                                        <tr>
+                                                            <td colspan="3" class="subjectColumn">
+                                                                합계
+                                                            </td>
+
+                                                            <!-- 총 금액이 나와야함 -->
+                                                            <!-- 총 금액  -->
+                                                            <td id="total_amount" class="detailColumn">
+                                                                {{dvamt}}
+                                                            </td>
+
+                                                            <!-- 비고 내용이 나와야함 -->
+                                                            <!-- 비고 -->
+                                                            <td id="note" class="detailColumn">
+
+                                                            </td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+
+                                        <!--modal footer-->
+                                        <div class="modal-footer">
+                                            <div v-if="usertype">
+                                                <button type="button" class="button" id="dvappy" value="y"
+                                                    @click="updateDvapp($event)" onclick="confirm_modalShow()">승인
+                                                </button>
+                                                <button type="button" class="button" id="dvappn" value="n"
+                                                    @click="updateDvapp($event)" onclick="confirm_modalShow()"
+                                                    style="margin-left: 10px">반려
+                                                </button>
+                                            </div>
+                                            <button type="button" class="button" id="download" onclick="">다운로드</button>
+                                            <button type="button" class="button" id="close"
+                                                onclick="detail_modalHide()">닫기</button>
+                                        </div>
+
+
+                                        <!--confirm modal-->
+                                        <div class="modal fade" tabindex="-1" id="confirm_modal" role="dialog"
+                                            data-backdrop="static">
+                                            <div class="modal-dialog modal-dialog-centered">
+                                                <div class="modal-content">
+
+                                                    <!--modal header-->
+                                                    <div class="modal-header">
+                                                        <button type="button" class="btn-close" aria-label="Close"
+                                                            data-dismiss="modal"
+                                                            onclick="confirm_modalHide(); detail_modalHide();"></button>
+                                                    </div>
+
+                                                    <!--modal body-->
+                                                    <div class="modal-body">
+                                                        <label>처리되었습니다.</label>
+                                                    </div>
+
+                                                    <!--modal footer-->
+                                                    <div class="modal-footer">
+                                                        <button type="button" class="button" id="confirm"
+                                                            onclick="confirm_modalHide(); detail_modalHide(); ">확인
+                                                        </button>
+                                                    </div>
+
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <!-- confirm modal fin-->
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- detail modal fin-->
+
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+        <th:block th:replace="layout/footer::footer"></th:block>
+
+        <script>
+
+            // modalshow
+            function detail_modalShow() {
+                console.log("show");
+                $("#detail_modal").modal("show");
+            }
+
+            // modal hide
+            function detail_modalHide() {
+                console.log("hide");
+                $("#detail_modal").modal("hide");
+            }
+
+            // modalshow
+            function confirm_modalShow() {
+                console.log("show");
+                $("#confirm_modal").modal("show");
+            }
+
+            // modal hide
+            function confirm_modalHide() {
+                console.log("hide");
+                $("#confirm_modal").modal("hide");
+            }
+
+        </script>
+
+        <!--지출결의 리스트 vue-->
+        <script>
+
+            const expend = {
+                data() {
+                    return {
+                        usertype: true,             //유저 권한
+                        empno: '',                  //사원 번호
+                        empname: '',                //사원 이름
+                        name: '',                   //검색 이름
+                        dvappyn: 'all',             //승인 여부
+                        startDvRegDate: '',         //시작 날짜
+                        endDvRegDate: '',           //종료 날짜
+                        dvRegDate: '',              //작성 날짜
+                        departmentname: '',         //부서명
+                        dvamt: '',                  //총금액
+                        divcd: '',                  //계정 과목 번호
+                        dvno: '',                   //결의 번호
+                        expendList: [],             //검색 리스트 배열
+                        modalList: []               //상세 내역 리스트 배열
+                    }
+                },
+
+                methods: {
+
+                    // 로그인 된 아이디의 usertype 가져오기
+                    getUserType() {
+                        axios.post("http://localhost:8888/api/usertype")
+                            .then((response) => {
+                                this.usertype = response.data === 'ROLE_C';
+                            })
+                    },
+
+                    // 조건에 따른 parameter post, 전체적인 리스트
+                    postParam() {
+                        let today = new Date();
+
+                        if (this.startDvRegDate == "") {
+                            this.startDvRegDate = dateFormat(today);
+                        }
+                        if (this.endDvRegDate == "") {
+                            this.endDvRegDate = dateFormat(today);
+                        }
+
+                        axios.post("http://localhost:8888/api/param",
+                            {
+                                empno: this.empno,
+                                empname: this.name,
+                                dvappyn: this.dvappyn,
+                                startDvRegDate: this.startDvRegDate,
+                                endDvRegDate: this.endDvRegDate,
+                                divcd: this.divcd
+                            }
+                        ).then((response) => {
+                            this.expendList = response.data;
+                        }).catch(error => console.error(error))
+                    },
+
+
+                    // 결의 번호에 따른 데이터 받는 메소드, 결의 번호 상세 정보
+                    getDvno: function (dvno) {
+
+                        axios.post("http://localhost:8888/api/detail",
+                            {
+                                dvno: dvno
+                            })
+                            .then((response) => {
+                                this.modalList = response.data;
+                                this.dvno = this.modalList[0].dvno;
+                                this.dvRegDate = this.modalList[0].dvRegDate;
+                                this.departmentname = this.modalList[0].departmentname;
+                                this.empname = this.modalList[0].name;
+                                this.dvamt = this.modalList[0].dvamt;
+                            })
+                            .catch(error => console.error(error))
+
+                    },
+
+                    // 승인 반려에 따른 업데이트 메소드
+                    updateDvapp: function (event) {
+                        let dvappButton = event.currentTarget.value;
+                        let data = this.dvno;
+                        axios.post("http://localhost:8888/api/update", {
+                            dvno: data,
+                            dvappyn: dvappButton
+                        })
+                    },
+
+                },
+
+                // 로그인 된 아이디의 usertype 가져오기
+                created() {
+                    this.getUserType();
+                },
+
+
+            }
+
+
+            //날짜 포멧 yyyy-MM-dd
+            function dateFormat(date) {
+                let month = date.getMonth() + 1;
+                let day = date.getDate();
+
+                month = month >= 10 ? month : '0' + month;
+                day = day >= 10 ? day : '0' + day;
+
+                return date.getFullYear() + '-' + month + '-' + day;
+            }
+
+
+            Vue.createApp(expend).mount('#app');
+
+        </script>
+
+    </body>
+</th:blcok>
+
+</html>

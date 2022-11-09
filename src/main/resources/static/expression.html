@@ -1,0 +1,35 @@
+<!-- vue3 -->
+<script src="https://unpkg.com/vue@3"></script>
+
+<div id="app">
+    <div>{{ counter }}</div>
+    <div v-if="counter > 0">
+        <div v-if="counter % 5 == 0">
+            5의 배수
+        </div>
+        <div v-else-if="counter % 2 == 0">
+            짝수
+        </div>
+        <div v-else>
+            홀수
+        </div>
+    </div>
+    <button @click="counter++">Count</button>
+</div>
+
+<script>
+    var app = Vue.createApp ({
+        data() {
+            return {
+                counter: 0
+            }
+        }
+    }).mount('#app')
+</script>
+
+<style>
+    #app {
+        width: 100%;
+        text-align: center;
+    }
+</style>

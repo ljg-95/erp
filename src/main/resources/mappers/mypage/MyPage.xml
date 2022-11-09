@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="sjht.erp.mypage.repository.MyPageMapper">
+
+
+    <update id="updateEmpData" parameterType="sjht.erp.mypage.dto.MyPageUpdateDto">
+        UPDATE employee
+        SET
+        password = #{password},
+        bankcd = #{bankcd},
+        mail = #{mail},
+        tel = #{tel},
+        zipcode = #{zipcode},
+        addr = #{addr},
+        addrdetail = #{addrdetail},
+        account = #{account}
+
+        WHERE  empno = #{empno}
+    </update>
+</mapper>

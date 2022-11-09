@@ -1,0 +1,26 @@
+[
+	{
+		"departmentcd" : "D001",
+		"departmentname" : "인사부"
+	},
+	{
+		"departmentcd" : "D002",
+		"departmentname" : "총무부"
+	},
+	{
+		"departmentcd" : "D003",
+		"departmentname" : "영업부"
+	},
+	{
+		"departmentcd" : "D004",
+		"departmentname" : "마케팅부"
+	},
+	{
+		"departmentcd" : "D005",
+		"departmentname" : "회계부"
+	},
+	{
+		"departmentcd" : "D006",
+		"departmentname" : "기술관리부"
+	}
+]

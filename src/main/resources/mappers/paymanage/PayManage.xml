@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="sjht.erp.paymanage.repository.PayManageMapper">
+    <select id="getPayEmpList" resultMap="payEmpList">
+        SELECT emp.empno, emp.name, emp.salary, emp.restyn, emp.paymentst, emp.privateinsurance, sum(ex.dvamt) as expend,
+        d.departmentname as departmentname, g.gradename as gradename
+        FROM employee as emp
+        LEFT JOIN departmentcode as d
+        ON emp.departmentcd = d.departmentcd
+        LEFT JOIN gradecode as g
+        ON emp.gradecd = g.gradecd
+        LEFT JOIN expendhistory as ex
+        ON emp.empno = ex.empno AND (ex.paidyn = 'n' OR ex.paidyn IS NULL)
+        where emp.retireyn = 'n' AND (emp.paymentst IS NULL OR emp.paymentst <![CDATA[<]]> STR_TO_DATE(NOW(), '%Y-%m-%d'))
+        GROUP BY emp.empno
+    </select>
+
+    <resultMap id="payEmpList" type="sjht.erp.paymanage.dto.PayEmpDto">
+        <id column="empno" property="empno"/>
+        <result column="name" property="name"/>
+        <result column="salary" property="salary"/>
+        <result column="restyn" property="restyn"/>
+        <result column="paymentst" property="paymentst"/>
+        <result column="expend" property="expend"/>
+        <result column="departmentname" property="departmentname"/>
+        <result column="gradename" property="gradename"/>
+        <result column="privateinsurance" property="privateinsurance"/>
+    </resultMap>
+
+    <update id="paySalary" parameterType="sjht.erp.paymanage.dto.PayEmpDto">
+        <foreach item="emp" index="index" collection="list" separator=";">
+            UPDATE employee
+            SET paymentst = #{emp.paymentst}
+            WHERE empno = #{emp.empno}
+        </foreach>
+    </update>
+
+    <insert id="paySalaryHistory" parameterType="sjht.erp.paymanage.dto.PayEmpDto">
+        <foreach collection="list" separator=";" item="emp" index="index">
+            INSERT INTO payrollhistory
+                (empno, privateinsurance, netpay, pay, paymentdate, expend)
+            VALUES (#{emp.empno},#{emp.privateinsurance},#{emp.salary}+#{emp.expend}-#{emp.privateinsurance},#{emp.salary},#{emp.paymentst},#{emp.expend})
+        </foreach>
+    </insert>
+</mapper>

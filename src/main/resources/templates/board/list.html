@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en" layout:decorate="~{layout/layout_form}">
+<th:blcok layout:fragment="content">
+
+    <head>
+        <meta charset="UTF-8">
+        <link href="/css/hrms/hrms.css" rel="stylesheet" />
+    </head>
+
+    <body>
+        <header class="page-header page-header-compact page-header-light border-bottom bg-white">
+            <div class="container-fluid">
+                <div class="page-header-content">
+                    <div class="row align-items-center justify-content-between pt-3">
+                        <div class="col-auto mb-3">
+                            <h1 class="page-header-title">
+                                <div class="page-header-icon"><i data-feather="user"></i></div>
+                                게시판 - 자유 게시판
+                            </h1>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+        <header class="page-header page-header-dark bg-gray-900 pb-10">
+            <div class="container">
+                <div class="page-header-content pt-2">
+                </div>
+            </div>
+        </header>
+        <div class="container mt-n10">
+            <div class="card mb-4">
+                <div class="card-header">자유게시판</div>
+                <!--코드 시작 부분-->
+                <div class="card-body">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <th>번호</th>
+                            <th>제목</th>
+                            <th>작성일</th>
+                            <th>조회수</th>
+                        </thead>
+    
+                        <tbody>
+                            <tr v-for="(boardlist, i) in list" key="boardlist.bno">
+                                <td>
+                                    {{boardlist.bno}}
+                                </td>
+                                <td>
+                                    <a :href="'/board/detail.do?bno=' + boardlist.bno">{{ boardlist.title }}</a>
+                                </td>
+                                <td>
+                                    {{boardlist.createtime}}
+                                </td>
+                                <td>
+                                    {{boardlist.boardcount}}
+                                </td>
+                            </tr>
+    
+                        </tbody>
+                    </table>
+                    <a href="/api/board/insert" class="btn btn-dark btn m-2" style="background : #284565;">글 작성</a>
+                </div>
+                
+
+                <!--코드 끝 부분-->
+            </div>
+        </div>
+
+
+        <script>
+            const boardlist = {
+                data() {
+                    return {
+                        list: []
+                    }
+                },
+
+                methods: {
+
+                    getBoard() {
+                        axios.post("http://localhost:8888/board/list.do"
+                        ).then((response) => {
+                            this.list = response.data;
+                        }).catch(error => console.error(error))
+                    }
+                },
+                created() {
+                    this.getBoard();
+                }
+            }
+            Vue.createApp(boardlist).mount("#board")
+
+
+        </script>
+    </body>
+</th:blcok>
+
+</html>

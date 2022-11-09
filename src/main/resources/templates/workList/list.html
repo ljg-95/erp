@@ -1,0 +1,1365 @@
+<!DOCTYPE html>
+<html lang="en" layout:decorate="~{layout/layout_form}">
+<th:blcok layout:fragment="content">
+
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <link href="/css/hrms/hrms.css" rel="stylesheet"/>
+        <title>Work Time List</title>
+    </head>
+
+    <body>
+    <header class="page-header page-header-compact page-header-light border-bottom bg-white">
+        <div class="container-fluid">
+            <div class="page-header-content">
+                <div class="row align-items-center justify-content-between pt-3">
+                    <div class="col-auto mb-3">
+                        <h1 class="page-header-title">
+                            <div class="page-header-icon"><i data-feather="user"></i></div>
+                            접수함
+                        </h1>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+    <header class="page-header page-header-dark bg-gray-900 pb-10">
+        <div class="container">
+            <div class="page-header-content pt-2">
+            </div>
+        </div>
+    </header>
+    <div class="container mt-n10">
+        <div class="card mb-4">
+            <div class="card-header">휴가/지출결의 신청</div>
+            <div class="card-body">
+                <div id="app" class="boardTop">
+                    <div class="datatable">
+                        <div>
+                            <div>
+                                <form v-if="ROLE">
+                                    <div class="form-row">
+                                        <!--시작 날짜 검색-->
+                                        <div class="form-group col-md-2">
+                                            <label for="startdate">시작날짜:&numsp;</label>
+                                            <i class="mr-2 text-primary" data-feather="calendar"></i>
+                                            <input class="form-control form-control-solid" v-model="startDvRegDate"
+                                                   type="date" id="startDvRegDate" name="startDate" placeholder="날짜입력">
+                                        </div>
+
+                                        <!--종료 날짜 검색-->
+                                        <div class="form-group col-md-2">
+                                            <label for="enddate">퇴사일자&nbsp;</label>
+                                            <i class="mr-2 text-primary" data-feather="calendar"></i>
+                                            <input class="form-control form-control-solid" v-model="endDvRegDate"
+                                                   type="date" id="endDvRegDate" name="endDate" placeholder="날짜입력">
+                                        </div>
+
+                                        <!--사원명 검색-->
+                                        <div class="form-group col-md-2">
+                                            <label for="empname">사원명</label>
+                                            <div class="input-group input-group-joined input-group-solid">
+                                                <input type="text" class="form-control form-control-sm"
+                                                       id="employeeName" v-model="employeeName" name="employeeName">
+                                            </div>
+                                        </div>
+
+                                        <!--사번 검색-->
+                                        <div class="form-group col-md-2">
+                                            <label for="empno">사번</label>
+                                            <div class="input-group input-group-joined input-group-solid">
+                                                <input class="form-control form-control-sm" type="text"
+                                                       id="employeeNo" v-model="employeeNo" name="employeeNo">
+                                            </div>
+                                        </div>
+
+                                        <!--승인 여부 검색-->
+                                        <div class="form-group col-md-2">
+                                            <label for="approveyn">승인 여부</label>
+                                            <select class="form-select form-control-solid" name="approveryn"
+                                                    id="approveryn" v-model="approveryn">
+                                                <option value="all" selected>전체</option>
+                                                <option value="y">승인</option>
+                                                <option value="w">미승인</option>
+                                                <option value="n">반려</option>
+                                            </select>
+                                        </div>
+
+                                        <div class="form-group col-md-2" style="display: grid; padding:1rem;">
+                                            <button type="button" @click="getWorkTimeList"
+                                                    class="btn btn-dark btn-md">조회
+                                            </button>
+                                        </div>
+                                    </div>
+                                </form>
+                                <div class="container" style="margin-top: 20px">
+                                    <!-- 조건입력-->
+                                    <ul class="nav nav-tabs" id="myTab" role="tablist">
+                                        <li class="nav-item" role="presentation">
+                                            <button class="nav-link active" id="home-tab" data-bs-toggle="tab"
+                                                    data-bs-target="#home" type="button" role="tab" aria-controls="home"
+                                                    aria-selected="true">휴가리스트
+                                            </button>
+                                        </li>
+                                        <li class="nav-item" role="presentation">
+                                            <button class="nav-link" id="profile-tab" data-bs-toggle="tab"
+                                                    data-bs-target="#profile" type="button" role="tab"
+                                                    aria-controls="profile" aria-selected="false">
+                                                지출결의리스트
+                                            </button>
+                                        </li>
+                                    </ul>
+                                    <div class="tab-content" id="myTabContent">
+                                        <div class="tab-pane fade show active" id="home" role="tabpanel"
+                                             aria-labelledby="home-tab">
+                                            <table class="table table-bordered">
+                                                <thead>
+                                                <tr>
+                                                    <th scope="col">번호</th>
+                                                    <th scope="col">사번</th>
+                                                    <th scope="col">사원명</th>
+                                                    <th scope="col">부서</th>
+                                                    <th scope="col">시작일자</th>
+                                                    <th scope="col">종료일자</th>
+                                                    <th scope="col">등록일자</th>
+                                                    <th scope="col">검토일자</th>
+                                                    <th scope="col">승인자</th>
+                                                    <th scope="col">승인여부</th>
+                                                    <th scope="col">수정</th>
+                                                    <th scope="col">삭제</th>
+                                                    <th scope="col" v-if="ROLE">상세보기</th>
+                                                </tr>
+                                                </thead>
+                                                <tbody v-for="(resultpk,i) in allWorkTimeList" key="resultpk.tano">
+                                                <tr>
+                                                    <td>{{resultpk.tano}}</td>
+                                                    <td>{{resultpk.empno}}</td>
+                                                    <td>{{resultpk.name}}</td>
+                                                    <td>{{resultpk.departmentname}}</td>
+                                                    <td>{{resultpk.startdate}}</td>
+                                                    <td>{{resultpk.enddate}}</td>
+                                                    <td>{{resultpk.registdate}}</td>
+                                                    <td>{{resultpk.approverdate}}</td>
+                                                    <td>{{resultpk.approver}}</td>
+                                                    <td>{{resultpk.approveryn}}</td>
+                                                    <td><a v-if="Id==resultpk.empno && resultpk.approveryn=='w'"
+                                                           class="btn btn-dark p-2"
+                                                           onclick="modifyWorkTimeModalInput()"
+                                                           @click="getWorkTimeData(resultpk.tano)">수정</a></td>
+                                                    <td><a v-if="Id==resultpk.empno && resultpk.approveryn=='w'"
+                                                           class="btn btn-dark p-2"
+                                                           @click="deleteMyHoliday(resultpk.tano)">삭제</a></td>
+                                                    <td v-if="ROLE"><a class="btn btn-dark p-2"
+                                                                       onclick="ConfirmHolidayModal()"
+                                                                       @click="getOne(i)">상세보기</a>
+                                                    </td>
+                                                </tr>
+                                                </tbody>
+                                            </table>
+                                            <nav aria-label="Page navigation example"
+                                                 class="align-content-xl-center">
+                                                <ul class="pagination" style="justify-content: center">
+                                                    <li class="page-item">
+                                                        <a class="page-link" href="#" aria-label="Previous">
+                                                            <span aria-hidden="true">&laquo;</span>
+                                                        </a>
+                                                    </li>
+                                                    <li class="page-item"><a class="page-link" href="#">1</a></li>
+                                                    <li class="page-item">
+                                                        <a class="page-link" href="#" aria-label="Next">
+                                                            <span aria-hidden="true">&raquo;</span>
+                                                        </a>
+                                                    </li>
+                                                </ul>
+                                            </nav>
+                                            <div class="modal fade" tabindex="-1" id="modify_workTime_modal"
+                                                 role="dialog" data-backdrop="static">
+                                                <div class="modal-dialog modal-md 15">
+                                                    <div class="modal-content">
+                                                        <!--modal header-->
+                                                        <div class="modal-header">
+                                                            <h4 style="justify-content: center">휴가신청서</h4>
+                                                        </div>
+                                                        <div class="modal-body">
+                                                            <div class="col-6">
+                                                                <table class="table table-bordered">
+                                                                    <colgroup>
+                                                                        <col width="50%"/>
+                                                                        <col width="50%"/>
+                                                                    </colgroup>
+                                                                    <tr>
+                                                                        <td class="table-light">신청인</td>
+                                                                        <td><label>{{name}}</label></td>
+                                                                    </tr>
+                                                                </table>
+                                                            </div>
+                                                            <div class="col-12">
+                                                                <table class="table table-bordered">
+                                                                    <colgroup>
+                                                                        <col width="34%"/>
+                                                                        <col width="33%"/>
+                                                                        <col width="33%"/>
+                                                                    </colgroup>
+                                                                    <tr>
+                                                                        <td class="table-light">날짜</td>
+                                                                        <td><input type="date" class="form-control"
+                                                                                   v-model="startDate">
+                                                                        </td>
+                                                                        <td><input type="date" class="form-control"
+                                                                                   v-model="endDate">
+                                                                        </td>
+                                                                    </tr>
+                                                                </table>
+                                                            </div>
+                                                            <div class="col-12">
+                                                                <table class="table table-bordered">
+                                                                    <colgroup>
+                                                                        <col width="34%"/>
+                                                                        <col width="33%"/>
+                                                                        <col width="33%"/>
+                                                                    </colgroup>
+                                                                    <tr>
+                                                                        <td rowspan="2" class="table-light">사유</td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <td colspan="3"><textarea
+                                                                                class="form-control"
+                                                                                v-model="reasonHoliday">{{reasonHoliday}}</textarea>
+                                                                        </td>
+                                                                    </tr>
+                                                                </table>
+                                                            </div>
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button type="submit" class="btn btn-dark"
+                                                                    @click="updateHoliday">수정하기
+                                                            </button>
+                                                            <button type="button" class="btn btn-dark"
+                                                                    onclick="modifyWorkTimeModalClose()">닫기
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="tab-pane fade" id="profile" role="tabpanel"
+                                             aria-labelledby="profile-tab">
+                                            <table class="table table-bordered">
+                                                <thead>
+                                                <tr>
+                                                    <th scope="col">결의번호</th>
+                                                    <th scope="col">사번</th>
+                                                    <th scope="col">이름</th>
+                                                    <th scope="col">부서</th>
+                                                    <th scope="col">신청일자</th>
+                                                    <th scope="col">지출금액</th>
+                                                    <th scope="col">승인여부</th>
+                                                    <th scope="col">상세보기</th>
+                                                    <th scope="col">삭제</th>
+                                                </tr>
+                                                </thead>
+                                                <tbody v-for="(result,i) in myExpendList" key="result.dvno">
+                                                <tr>
+                                                    <td>{{result.dvno}}</td>
+                                                    <td>{{result.empno}}</td>
+                                                    <td>{{result.name}}</td>
+                                                    <td>{{result.departmentname}}</td>
+                                                    <td>{{result.dvregdate}}</td>
+                                                    <td>{{result.dvamt}}</td>
+                                                    <td>{{result.dvappyn}}</td>
+                                                    <td><a class="btn btn-dark" onclick="DetailModalInput2()"
+                                                           @click="getDetail(result)">상세보기</a>
+                                                    </td>
+                                                    <td><a class="btn btn-dark"
+                                                           @click="deleteData(result.dvno)">삭제</a>
+                                                    </td>
+                                                </tr>
+                                                </tbody>
+                                            </table>
+                                            <nav aria-label="Page navigation example"
+                                                 class="align-content-xl-center">
+                                                <ul class="pagination" style="justify-content: center">
+                                                    <li class="page-item">
+                                                        <a class="page-link" href="#" aria-label="Previous">
+                                                            <span aria-hidden="true">&laquo;</span>
+                                                        </a>
+                                                    </li>
+                                                    <li class="page-item"><a class="page-link" href="#">1</a></li>
+                                                    <li class="page-item">
+                                                        <a class="page-link" href="#" aria-label="Next">
+                                                            <span aria-hidden="true">&raquo;</span>
+                                                        </a>
+                                                    </li>
+                                                </ul>
+                                            </nav>
+                                        </div>
+                                        <!-- 지출결의 리스트 상세보기 버튼 클릭시 나타나는 모달-->
+                                        <div class="modal fade" tabindex="-1" id="reWrite_detail_modal"
+                                             role="dialog" data-backdrop="static">
+                                            <div class="modal-dialog modal-xl mt-15">
+                                                <div class="modal-content">
+
+                                                    <!--modal header-->
+                                                    <div class="modal-header">
+                                                        <h4>지출결의신청서</h4>
+                                                        <button type="button" class="btn-close" aria-label="Close"
+                                                                data-dismiss="modal"
+                                                                onclick="ReDetailModalClose()"></button>
+                                                    </div>
+                                                    <!--modal body-->
+                                                    <div class="modal-body">
+                                                        <div>
+                                                            <table class="table-sm table-bordered">
+                                                                <tr>
+                                                                    <td>결의번호</td>
+                                                                    <td>{{reloadData}}</td>
+                                                                </tr>
+                                                            </table>
+                                                        </div>
+                                                        <table class="table table-bordered"
+                                                               style="margin-top: 10px;">
+                                                            <tr>
+                                                                <td>작성자</td>
+                                                                <td>{{name}}</td>
+                                                                <td>소속</td>
+                                                                <td>{{departmentName}}</td>
+                                                            </tr>
+                                                        </table>
+
+                                                        <table class="table table-bordered">
+                                                            <thead class="table-light">
+                                                            <tr>
+                                                                <td>일자</td>
+                                                                <td>분류</td>
+                                                                <td>적요</td>
+                                                                <td>사용내역</td>
+                                                                <td>금액</td>
+                                                                <td>비고</td>
+                                                                <td>첨부파일</td>
+                                                                <td>편집</td>
+                                                                <td>삭제</td>
+                                                            </tr>
+                                                            </thead>
+                                                            <tbody v-for="i in reloadDatas" key="i.dno">
+                                                            <tr>
+                                                                <td>{{i.dvusedate}}</td>
+                                                                <td>{{i.divcd}}</td>
+                                                                <td>{{i.briefs}}</td>
+                                                                <td>{{i.detailuse}}</td>
+                                                                <td>{{i.price}}</td>
+                                                                <td>{{i.dvmemo}}</td>
+                                                                <td></td>
+                                                                <td>
+                                                                    <button @click="chooseDetailData(i.dno)"
+                                                                            class="btn btn-dark"
+                                                                            onclick="modifyDetailModalInput()">수정
+                                                                    </button>
+                                                                </td>
+                                                                <td>
+                                                                    <button @click="deleteOne(i.dno)"
+                                                                            class="btn btn-dark" onclick="">삭제
+                                                                    </button>
+                                                                </td>
+                                                            </tr>
+                                                            </tbody>
+                                                        </table>
+                                                        <nav aria-label="Page navigation example"
+                                                             class="align-content-xl-center">
+                                                            <ul class="pagination" style="justify-content: center">
+                                                                <li class="page-item">
+                                                                    <a class="page-link" href="#"
+                                                                       aria-label="Previous">
+                                                                        <span aria-hidden="true">&laquo;</span>
+                                                                    </a>
+                                                                </li>
+                                                                <li class="page-item"><a class="page-link"
+                                                                                         href="#">1</a></li>
+                                                                <li class="page-item">
+                                                                    <a class="page-link" href="#" aria-label="Next">
+                                                                        <span aria-hidden="true">&raquo;</span>
+                                                                    </a>
+                                                                </li>
+                                                            </ul>
+                                                        </nav>
+                                                        <button type="button" class="btn btn-dark"
+                                                                onclick="modiDetailModalInput()">
+                                                            결의작성
+                                                        </button>
+                                                    </div>
+                                                    <!--modal footer-->
+                                                    <div class="modal-footer">
+                                                        <button type="button" class="btn btn-dark"
+                                                                id="expendReWrite" @click="reUpdateExpendInformation">수정
+                                                        </button>
+                                                        <button @click="" type="button" class="btn btn-dark"
+                                                                id="expendWriteClose" onclick="ReDetailModalClose()">닫기
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <!-- 지출결의정보 입력(리스트 편집 상세보기)-->
+                                            <div class="modal fade" tabindex="-1" id="reWrite_detailInput_modal"
+                                                 role="dialog" data-backdrop="static">
+                                                <div class="modal-dialog modal-xl mt-15">
+                                                    <div class="modal-content">
+                                                        <!--modal header-->
+                                                        <div class="modal-header">
+                                                            <h4 style="justify-content: center">지출결의 정보입력</h4>
+                                                        </div>
+                                                        <div class="modal-body">
+                                                            <table class="table table-bordered">
+                                                                <tr>
+                                                                    <td>일자</td>
+                                                                    <td>분류</td>
+                                                                    <td>적요</td>
+                                                                    <td>사용내역</td>
+                                                                    <td>금액</td>
+                                                                    <td>비고</td>
+                                                                    <td>파일</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td><input v-model="usedate" type="date"
+                                                                               class="form-control">
+                                                                    </td>
+                                                                    <td>
+                                                                        <select v-model="divcd" class="form-select">
+                                                                            <option value="AC001">월급</option>
+                                                                            <option value="AC002">주유비</option>
+                                                                            <option value="AC003">식대</option>
+                                                                            <option value="AC004">문화비</option>
+                                                                            <option value="AC005">기타</option>
+                                                                        </select>
+                                                                    </td>
+                                                                    <td>
+                                                                        <input v-model="briefs" type="text"
+                                                                               class="form-control">
+                                                                    </td>
+                                                                    <td>
+                                                                        <input v-model="useDetail" type="text"
+                                                                               class="form-control">
+                                                                    </td>
+                                                                    <td>
+                                                                        <input v-model="price" type="text"
+                                                                               class="form-control">
+                                                                    </td>
+                                                                    <td>
+                                                                        <input v-model="dvmemo" type="text"
+                                                                               class="form-control">
+                                                                    </td>
+                                                                    <td>
+                                                                        <input @change="onInputFile" type="file"
+                                                                               name="filename" class="custom">
+                                                                    </td>
+                                                                </tr>
+                                                            </table>
+                                                            <button type="button" class="btn btn-dark" onclick=""
+                                                                    @click="">저장
+                                                            </button>
+                                                            <button type="button" class="btn btn-dark"
+                                                                    onclick="ReInputDetailModalClose()">종료
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <!-- 지출결의리스트에서 상세보기 모달에서 결의작성 버튼 클릭시 나타나는 모달-->
+                                            <div class="modal fade" tabindex="-1" id="modiWrite_detailInput_modal"
+                                                 role="dialog" data-backdrop="static">
+                                                <div class="modal-dialog modal-xl mt-15">
+                                                    <div class="modal-content">
+                                                        <!--modal header-->
+                                                        <div class="modal-header">
+                                                            <h4 style="justify-content: center">지출결의 정보입력</h4>
+                                                        </div>
+                                                        <div class="modal-body">
+                                                            <table class="table table-bordered">
+                                                                <tr>
+                                                                    <td>일자</td>
+                                                                    <td>분류</td>
+                                                                    <td>적요</td>
+                                                                    <td>사용내역</td>
+                                                                    <td>금액</td>
+                                                                    <td>비고</td>
+                                                                    <td>파일</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td><input v-model="useDate" type="date"
+                                                                               class="form-control">
+                                                                    </td>
+                                                                    <td>
+                                                                        <select v-model="divcd" class="form-select">
+                                                                            <option value="AC001">월급</option>
+                                                                            <option value="AC002">주유비</option>
+                                                                            <option value="AC003">식대</option>
+                                                                            <option value="AC004">문화비</option>
+                                                                            <option value="AC005">기타</option>
+                                                                        </select>
+                                                                    </td>
+                                                                    <td>
+                                                                        <input v-model="briefs" type="text"
+                                                                               class="form-control">
+                                                                    </td>
+                                                                    <td>
+                                                                        <input v-model="usedetail" type="text"
+                                                                               class="form-control">
+                                                                    </td>
+                                                                    <td>
+                                                                        <input v-model="price" type="text"
+                                                                               class="form-control">
+                                                                    </td>
+                                                                    <td>
+                                                                        <input v-model="dvmemo" type="text"
+                                                                               class="form-control">
+                                                                    </td>
+                                                                    <td>
+                                                                        <input @change="onInputFile" type="file"
+                                                                               name="filename" class="custom">
+                                                                    </td>
+                                                                </tr>
+                                                            </table>
+                                                            <button type="button" class="btn btn-dark"
+                                                                    @click="reInputDetail()">추가
+                                                            </button>
+                                                            <button type="button" class="btn btn-dark"
+                                                                    onclick="modiDetailModalClose()">종료
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <!-- 지출결의리스트에서 상세보기 모달에서 편집의 수정 버튼 클릭시 나타나는 모달-->
+                                            <div class="modal fade" tabindex="-1" id="modify_detailInput_modal"
+                                                 role="dialog" data-backdrop="static">
+                                                <div class="modal-dialog modal-xl 5">
+                                                    <div class="modal-content">
+                                                        <!--modal header-->
+                                                        <div class="modal-header">
+                                                            <h4 style="justify-content: center">지출결의 정보입력</h4>
+                                                        </div>
+                                                        <div class="modal-body">
+                                                            <table class="table table-bordered">
+                                                                <tr>
+                                                                    <td>일자</td>
+                                                                    <td>분류</td>
+                                                                    <td>적요</td>
+                                                                    <td>사용내역</td>
+                                                                    <td>금액</td>
+                                                                    <td>비고</td>
+                                                                    <td>파일</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td><input v-model="usedate" type="date"
+                                                                               class="form-control">
+                                                                    </td>
+                                                                    <td>
+                                                                        <select v-model="divcd" class="form-select">
+                                                                            <option value="AC001">월급</option>
+                                                                            <option value="AC002">주유비</option>
+                                                                            <option value="AC003">식대</option>
+                                                                            <option value="AC004">문화비</option>
+                                                                            <option value="AC005">기타</option>
+                                                                        </select>
+                                                                    </td>
+                                                                    <td>
+                                                                        <input v-model="briefs" type="text"
+                                                                               class="form-control">
+                                                                    </td>
+                                                                    <td>
+                                                                        <input v-model="useDetail" type="text"
+                                                                               class="form-control">
+                                                                    </td>
+                                                                    <td>
+                                                                        <input v-model="price" type="text"
+                                                                               class="form-control">
+                                                                    </td>
+                                                                    <td>
+                                                                        <input v-model="dvmemo" type="text"
+                                                                               class="form-control">
+                                                                    </td>
+                                                                    <td>
+                                                                        <input @change="onInputFile" type="file"
+                                                                               name="filename" class="custom">
+                                                                    </td>
+                                                                </tr>
+                                                            </table>
+                                                            <button type="button" class="btn btn-dark"
+                                                                    @click="updateMyDetail()">수정
+                                                            </button>
+                                                            <button type="button" class="btn btn-dark"
+                                                                    onclick="modifyDetailModalClose()">종료
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- 휴가신청 자세히보기-->
+                                <div class="modal fade" tabindex="-1" id="detail_workTime_modal" role="dialog"
+                                     data-backdrop="static">
+                                    <div class="modal-dialog modal-md mt-15">
+                                        <div class="modal-content">
+                                            <!--modal header-->
+                                            <div class="modal-header">
+                                                <h4 style="justify-content: center">휴가신청서</h4>
+                                            </div>
+                                            <div class="modal-body">
+                                                <div class="col-6">
+                                                    <table class="table table-bordered">
+                                                        <colgroup>
+                                                            <col width="50%"/>
+                                                            <col width="50%"/>
+                                                        </colgroup>
+                                                        <tr>
+                                                            <td class="table-light">신청인</td>
+                                                            <td><label>{{workTimeDetail.name}}</label></td>
+                                                        </tr>
+                                                    </table>
+                                                </div>
+                                                <div class="col-12">
+                                                    <table class="table table-bordered">
+                                                        <colgroup>
+                                                            <col width="34%"/>
+                                                            <col width="33%"/>
+                                                            <col width="33%"/>
+                                                        </colgroup>
+                                                        <tr>
+                                                            <td class="table-light">날짜</td>
+                                                            <td><label
+                                                                    class="form-control">{{workTimeDetail.startdate}}</label>
+                                                            </td>
+                                                            <td><label
+                                                                    class="form-control">{{workTimeDetail.enddate}}</label>
+                                                            </td>
+                                                        </tr>
+                                                    </table>
+                                                </div>
+                                                <div class="col-12">
+                                                    <table class="table table-bordered">
+                                                        <colgroup>
+                                                            <col width="34%"/>
+                                                            <col width="33%"/>
+                                                            <col width="33%"/>
+                                                        </colgroup>
+                                                        <tr>
+                                                            <td rowspan="2" class="table-light">사유</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td colspan="3"><textarea
+                                                                    class="form-control worktextarea"
+                                                                    style="background : white;"
+                                                                    readonly>{{workTimeDetail.reasonholiday}}</textarea>
+                                                            </td>
+                                                        </tr>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="submit" class="btn btn-dark" id="accept"
+                                                        @click="updateAccept">
+                                                    승인
+                                                </button>
+                                                <button type="submit" class="btn btn-dark" id="denied"
+                                                        @click="updateDenied">
+                                                    반려
+                                                </button>
+                                                <button type="button" class="btn btn-dark" id="detailclose"
+                                                        onclick="ConfirmHolidayModalClose()">
+                                                    닫기
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- 신청하기 버튼-->
+                                <div class="col-4">
+                                    <button type="button" onclick="ExpendModalInput()" id="holiday"
+                                            class="btn btn-dark">휴가신청
+                                    </button>
+                                    &numsp;
+                                    <button type="button" @click="inputEXPENDDVNO()" onclick="DetailModalShow()"
+                                            id="expend" class="btn btn-dark">지출결의서신청
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <!-- 결의번호별 지출결의정보-->
+                    <div class="modal fade" tabindex="-1" id="detail_modal" role="dialog" data-backdrop="static">
+                        <div class="modal-dialog modal-xl mt-15">
+                            <div class="modal-content">
+
+                                <!--modal header-->
+                                <div class="modal-header">
+                                    <h4>지출결의신청서</h4>
+                                    <button type="button" class="btn-close" aria-label="Close" data-dismiss="modal"
+                                            onclick="DetailModalHide()"></button>
+                                </div>
+                                <!--modal body-->
+                                <div class="modal-body">
+                                    <div>
+                                        <table class="table-sm table-bordered">
+                                            <tr>
+                                                <td>결의번호</td>
+                                                <td>{{dvno}}</td>
+                                            </tr>
+                                        </table>
+                                    </div>
+                                    <table class="table table-bordered" style="margin-top: 10px;">
+                                        <tr>
+                                            <td>작성자</td>
+                                            <td>{{name}}</td>
+                                            <td>소속</td>
+                                            <td>{{departmentName}}</td>
+                                        </tr>
+                                    </table>
+
+                                    <table class="table table-bordered">
+                                        <thead class="table-light">
+                                        <tr>
+                                            <td>일자</td>
+                                            <td>분류</td>
+                                            <td>적요</td>
+                                            <td>사용내역</td>
+                                            <td>금액</td>
+                                            <td>비고</td>
+                                            <td>첨부파일</td>
+                                            <td>삭제</td>
+                                        </tr>
+                                        </thead>
+                                        <tbody v-for="(list) in myDetailExpendList" key="list.dno">
+                                        <tr v-for="(file,i) in files" key="file">
+                                            <td>{{list.dvusedate}}</td>
+                                            <td>{{list.divcd}}</td>
+                                            <td>{{list.briefs}}</td>
+                                            <td>{{list.detailuse}}</td>
+                                            <td>{{list.price}}</td>
+                                            <td>{{list.dvmemo}}</td>
+                                            <td><a @click="fileDownload(file.physicalpath,file.filename)">{{file.filename}}</a></td>
+                                            <td>
+                                                <button @click="deleteOne(list.dno)" class="btn btn-dark">
+                                                    삭제
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        </tbody>
+                                    </table>
+                                    <nav aria-label="Page navigation example" class="align-content-xl-center">
+                                        <ul class="pagination" style="justify-content: center">
+                                            <li class="page-item">
+                                                <a class="page-link" href="#" aria-label="Previous">
+                                                    <span aria-hidden="true">&laquo;</span>
+                                                </a>
+                                            </li>
+                                            <li class="page-item"><a class="page-link" href="#">1</a></li>
+                                            <li class="page-item">
+                                                <a class="page-link" href="#" aria-label="Next">
+                                                    <span aria-hidden="true">&raquo;</span>
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </nav>
+                                    <button type="button" class="btn btn-dark" id="enterInputExpend"
+                                            onclick="DetailModalInput()">
+                                        결의작성
+                                    </button>
+                                </div>
+                                <!--modal footer-->
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-dark" id="registry" onclick=""
+                                            @click="updateExpendInformation">신청
+                                    </button>
+                                    <button @click="deleteData" type="button" class="btn btn-dark" id="close"
+                                            onclick="DetailModalHide()">닫기
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- 지출결의정보 입력-->
+                        <div class="modal fade" tabindex="-1" id="detailInput_modal" role="dialog"
+                             data-backdrop="static">
+                            <div class="modal-dialog modal-xl mt-15">
+                                <div class="modal-content">
+                                    <!--modal header-->
+                                    <div class="modal-header">
+                                        <h4 style="justify-content: center">지출결의 정보입력</h4>
+                                    </div>
+                                    <div class="modal-body">
+                                        <table class="table table-bordered">
+                                            <tr>
+                                                <td>일자</td>
+                                                <td>분류</td>
+                                                <td>적요</td>
+                                                <td>사용내역</td>
+                                                <td>금액</td>
+                                                <td>비고</td>
+                                                <td>파일</td>
+                                            </tr>
+                                            <tr>
+                                                <td><input v-model="usedate" type="date" class="form-control"
+                                                           id="usedate">
+                                                </td>
+                                                <td>
+                                                    <select v-model="divcd" id="divcd" class="form-select">
+                                                        <option value="AC001">월급</option>
+                                                        <option value="AC002">주유비</option>
+                                                        <option value="AC003">식대</option>
+                                                        <option value="AC004">문화비</option>
+                                                        <option value="AC005">기타</option>
+                                                    </select>
+                                                </td>
+                                                <td><input v-model="briefs" type="text" class="form-control"
+                                                           id="briefs">
+                                                </td>
+                                                <td><input v-model="useDetail" type="text" class="form-control"
+                                                           id="useDetail">
+                                                </td>
+                                                <td><input v-model="price" type="text" class="form-control"
+                                                           id="price">
+                                                </td>
+                                                <td><input v-model="dvmemo" type="text" class="form-control"
+                                                           id="dvmemo">
+                                                </td>
+                                                <td>
+                                                    <input @change="filechange($event)" type="file" id="myFile"
+                                                           name="filename" class="custom">
+                                                </td>
+                                            </tr>
+                                        </table>
+                                        <button type="button" class="btn btn-dark" id="saveDetailExpend" onclick=""
+                                                @click="inputDetail()">저장
+                                        </button>
+                                        <button type="button" class="btn btn-dark" id="exitDetailExpend"
+                                                onclick="DetailModalClose()">종료
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!--휴가신청서-->
+        <div class="modal fade" tabindex="-1" id="workTime_modal" role="dialog" data-backdrop="static">
+            <div class="modal-dialog modal-md mt-15">
+                <div class="modal-content">
+                    <!--modal header-->
+                    <div class="modal-header">
+                        <h4 style="justify-content: center">휴가신청서</h4>
+                    </div>
+                    <div class="modal-body">
+                        <div class="col-6">
+                            <table class="table table-bordered">
+                                <colgroup>
+                                    <col width="50%"/>
+                                    <col width="50%"/>
+                                </colgroup>
+                                <tr>
+                                    <td class="table-light">신청인</td>
+                                    <td><label>{{name}}</label></td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-12">
+                            <table class="table table-bordered">
+                                <colgroup>
+                                    <col width="34%"/>
+                                    <col width="33%"/>
+                                    <col width="33%"/>
+                                </colgroup>
+                                <tr>
+                                    <td class="table-light">날짜</td>
+                                    <td><input type="date" class="form-control" v-model="startdate"></td>
+                                    <td><input type="date" class="form-control" v-model="enddate"></td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-12">
+                            <table class="table table-bordered">
+                                <colgroup>
+                                    <col width="34%"/>
+                                    <col width="33%"/>
+                                    <col width="33%"/>
+                                </colgroup>
+                                <tr>
+                                    <td rowspan="2" class="table-light">사유</td>
+                                </tr>
+                                <tr>
+                                    <td colspan="3"><textarea class="form-control"
+                                                              v-model="reasonholiday"></textarea>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-dark" id="TimeRegistry" @click="writeHoliday">신청
+                        </button>
+                        <button type="button" class="btn btn-dark" id="TimeClose" onclick="ExpendModalClose()">닫기
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.6.1.js"
+            integrity="sha256-3zlB5s2uwoUzrXK3BT7AX3FyvojsraNFxCc2vC/7pNI=" crossorigin="anonymous"></script>
+    <script src="/./js/worklist/listModal.js"></script>
+    <script>
+        const EXPEND = {
+            data() {
+                return {
+                    workTimeDetail: {}, // 근태관리 상세정보
+                    tano: "",
+                    startDate: "",
+                    endDate: "",
+                    reasonHoliday: "",
+                    ROLE: true,
+                    startDvRegDate: "",
+                    endDvRegDate: "",
+                    employeeName: "",
+                    employeeNo: "",
+                    approveryn: "all",
+                    allWorkTimeList: [],
+                    name: "",
+                    dvno: "",
+                    usedate: "",
+                    divcd: "",
+                    briefs: "",
+                    useDetail: "",
+                    price: "",
+                    dvmemo: "",
+                    myDetailExpendList: [], // 여러개의 지출결의 정보
+                    deleteInputData: true,
+                    deleteDetailInputData: true,
+                    departmentName: "",
+                    myExpendList: [], // 여러개의 expendList 묶음
+                    updateExpend: true,
+                    reloadData: "",
+                    reloadDatas: [],
+                    Id: "",
+                    myDetailExpend: {}, // 지출결의정보
+                    dno: "",
+                    files: []
+                }
+            },
+
+            methods: {
+                getWorkTimeList() {
+
+                    const data = {
+                        approveryn: this.approveryn,
+                        start: this.startDvRegDate,
+                        end: this.endDvRegDate,
+                        name: this.employeeName,
+                        empno: this.employeeNo
+                    }
+
+                    console.log(data);
+                    axios.post("http://localhost:8888/api/workList", data)
+                        .then(response => {
+                            this.allWorkTimeList = response.data;
+                        })
+                        .catch(err => console.error(err))
+                },
+                updateAccept() {
+                    const data = {
+                        approveryn: "y",
+                        tano: this.workTimeDetail.tano
+                    }
+                    axios.post("http://localhost:8888/api/updateHoliday", data).then(response => {
+                        if (response) {
+                            window.location.reload();
+                        } else {
+                            alert("데이터가 수정되지 않았습니다")
+                        }
+                    })
+                },
+                updateDenied() {
+                    const data = {
+                        approveryn: "n",
+                        tano: this.workTimeDetail.tano
+                    }
+                    axios.post("http://localhost:8888/api/updateHoliday", data).then(response => {
+                        if (response) {
+                            window.location.reload();
+                        } else {
+                            alert("데이터가 수정되지 않았습니다")
+                        }
+                    })
+                },
+                getName2() {
+                    axios.post("http://localhost:8888/api/getName")
+                        .then(response => {
+                            this.name = response.data
+                        })
+                },
+                getOne(i) {
+                    const data = {
+                        tanos: this.allWorkTimeList[i].tano
+                    };
+                    axios.post("http://localhost:8888/api/getOne", data).then(response => {
+                        this.workTimeDetail = response.data
+                    });
+                },
+                getMyWorkTimeList() {
+                    axios.post("http://localhost:8888/api/getMyWorkTime")
+                        .then(response => {
+                            this.allWorkTimeList = response.data;
+                        })
+                },
+                showViewAboutROLE(response) {
+                    if (response.data === "ROLE_C") {
+                        this.getWorkTimeList();
+                    } else {
+                        this.getMyWorkTimeList();
+                    }
+                },
+                getROLE() {
+                    axios.post("http://localhost:8888/api/getROLE").then(response => {
+                        this.ROLE = response.data === "ROLE_C"
+                        this.showViewAboutROLE(response)
+                    })
+                },
+                // 지출결의서신청 클릭시 결의번호 자동생성
+                inputEXPENDDVNO() {
+                    axios.post("http://localhost:8888/api/insertDVNO")
+                        .then(response => {
+                            this.dvno = response.data;
+                        })
+                },
+                inputDetail() {
+                    const data = {
+                        dvno: this.dvno,
+                        dvusedate: this.usedate,
+                        price: this.price,
+                        dvmemo: this.dvmemo,
+                        divcd: this.divcd,
+                        briefs: this.briefs,
+                        detailuse: this.useDetail
+                    }
+                    axios.post("http://localhost:8888/api/insertDetail", data)
+                        .then(response => {
+                            this.fileInput();
+                        })
+                },
+                filechange(event) {
+                    this.file = event.target.files[0];
+                },
+                // 파일 입력
+                fileInput() {
+                    // let file = document.getElementById("myFile").files[0];
+                    let formData = new FormData();
+                    formData.append("file", this.file);
+                    formData.append("dvno", this.dvno);
+                    if (this.file != null) {
+                        axios.post("http://localhost:8888/api/uploadFile", formData,
+                            {
+                                headers: {
+                                    "Content-Type": "multipart/form-data",
+                                }
+                            })
+                            .then(response => {
+                                this.ReShowList();
+                                this.fileSelect();
+                            })
+                    }
+                },
+                fileSelect() {
+                    const data = {
+                        dvno: this.dvno
+                    }
+                    axios.post("http://localhost:8888/api/selectFile", data)
+                        .then(response => {
+                            this.files = response.data;
+                            console.log(this.files)
+                        })
+                },
+                fileDownload(physicalpath,filename) {
+                    console.log(physicalpath)
+                    console.log(filename)
+                    const data = {
+                        ps : physicalpath,
+                        fn : filename
+                    }
+                    axios.post("http://localhost:8888/api/downloadFile",data
+                    ).then(response => {
+
+                    })
+                },
+                // 닫기 버튼 클릭시 결의번호 삭제
+                // 리스트에서 삭제버튼 클릭시 삭제
+                deleteData() {
+                    const data = {
+                        dvnoOne: this.dvno
+                    }
+                    axios.post("http://localhost:8888/api/deleteData", data)
+                        .then(response => {
+                            this.deleteInputData = response.data;
+
+                        })
+                },
+                getDepartmentName() {
+
+                    axios.post("http://localhost:8888/api/getDepartment")
+                        .then(response => {
+                            this.departmentName = response.data;
+                        })
+                },
+                updateExpendInformation() {
+                    const data = {
+                        dvnoOne: this.dvno
+                    }
+                    axios.post("http://localhost:8888/api/updateExpendInformation", data)
+                        .then(response => {
+                            this.updateExpend = response.data === true;
+                            if (this.updateExpend) {
+                                window.location.reload();
+                            } else {
+                                alert("데이터를 입력해주세요!")
+                            }
+                        })
+                },
+                // 리스트에 나의 지출결의 리스트의 미승인 데이터만 보여줌
+                showMyExpendList() {
+                    axios.post("http://localhost:8888/api/showMyExpendList")
+                        .then(response => {
+                            this.myExpendList = response.data;
+                        })
+                },
+                deleteOne(i) {
+                    const data = {
+                        dnum: i
+                    }
+                    axios.post("http://localhost:8888/api/deleteDetailDataOne", data)
+                        .then(response => {
+                            if (response) {
+                                this.ReShowList();
+                            }
+                        })
+                },
+                ReShowList() {
+                    const data = {
+                        dvnoOne: this.dvno
+                    }
+                    axios.post("http://localhost:8888/api/showMyDetailExpendList", data)
+                        .then(response => {
+                            this.myDetailExpendList = response.data
+                        })
+                },
+                getDetail(result) {
+                    this.reloadData = result.dvno;
+                    const data = {
+                        dvnoOne: this.reloadData
+                    };
+                    axios.post("http://localhost:8888/api/showMyDetailExpendList", data)
+                        .then(response => {
+                            this.reloadDatas = response.data;
+                        })
+                },
+                checkMyData() {
+                    axios.post("http://localhost:8888/api/checkMyId")
+                        .then(response => {
+                            this.Id = response.data
+                        })
+                },
+                showWorkTimeList() {
+                    if (this.ROLE === "ROLE_C") {
+                        this.getWorkTimeList()
+                    } else {
+                        this.getMyWorkTimeList()
+                    }
+                },
+                getWorkTimeData(resultpk) {
+                    this.tano = resultpk;
+                    const data = {
+                        tanos: this.tano
+                    }
+                    axios.post("http://localhost:8888/api/getOne", data)
+                        .then(response => {
+                            this.workTimeDetail = response.data
+                            this.startDate = this.workTimeDetail.startdate;
+                            this.endDate = this.workTimeDetail.enddate;
+                            this.reasonHoliday = this.workTimeDetail.reasonholiday
+                        })
+                },
+                updateHoliday() {
+                    const data = {
+                        startdate: this.startDate,
+                        enddate: this.endDate,
+                        reasonholiday: this.reasonHoliday,
+                        tano: this.tano
+                    }
+                    axios.post("http://localhost:8888/api/updateMyHoliday", data)
+                        .then(response => {
+                            if (response.data) {
+                                window.location.reload();
+                            } else {
+                                alert("업데이트가 되지 않았습니다.")
+                            }
+                        })
+                },
+                deleteMyHoliday(resultpk) {
+                    const data = {
+                        tano: resultpk
+                    }
+                    axios.post("http://localhost:8888/api/deleteMyHoliday", data)
+                        .then(response => {
+                            if (response.data) {
+                                window.location.reload();
+                            } else {
+                                alert("삭제되지 않았습니다.")
+                            }
+                        })
+                },
+                chooseDetailData(i) {
+                    const data = {
+                        dno: i
+                    }
+                    axios.post("http://localhost:8888/api/chooseMyDetailExpend", data)
+                        .then(response => {
+                            this.myDetailExpend = response.data;
+                            this.usedate = this.myDetailExpend.dvusedate;
+                            this.divcd = this.myDetailExpend.divcd;
+                            this.briefs = this.myDetailExpend.briefs;
+                            this.useDetail = this.myDetailExpend.detailuse;
+                            this.price = this.myDetailExpend.price;
+                            this.dvmemo = this.myDetailExpend.dvmemo;
+                            this.dno = this.myDetailExpend.dno;
+                        })
+                },
+                ReShowList2() {
+                    const data = {
+                        dvnoOne: this.reloadData
+                    }
+                    axios.post("http://localhost:8888/api/showMyDetailExpendList", data)
+                        .then(response => {
+                            this.reloadDatas = response.data
+                            DetailModalClose();
+                        })
+                },
+                updateMyDetail() {
+                    const data = {
+                        dvusedate: this.usedate,
+                        divcd: this.divcd,
+                        briefs: this.briefs,
+                        detailuse: this.useDetail,
+                        price: this.price,
+                        dvmemo: this.dvmemo,
+                        dno: this.dno
+                    }
+                    axios.post("http://localhost:8888/api/updateMyDetailExpend", data)
+                        .then(response => {
+                            if (response) {
+                                modifyDetailModalClose()
+                                this.ReShowList2();
+                            } else {
+                                alert("오류")
+                            }
+                        })
+                },
+                reUpdateExpendInformation() {
+                    const data = {
+                        dvnoOne: this.reloadData
+                    }
+                    axios.post("http://localhost:8888/api/updateExpendInformation", data)
+                        .then(response => {
+                            this.updateExpend = response.data === true;
+                            if (this.updateExpend) {
+                                window.location.reload();
+                            } else {
+                                alert("데이터를 입력해주세요!")
+                            }
+                        })
+                },
+                reInputDetail() {
+                    const data = {
+                        dvno: this.reloadData,
+                        dvusedate: this.usedate,
+                        price: this.price,
+                        dvmemo: this.dvmemo,
+                        divcd: this.divcd,
+                        briefs: this.briefs,
+                        detailuse: this.useDetail
+                    }
+                    axios.post("http://localhost:8888/api/insertDetail", data)
+                        .then(response => {
+                            this.reloadDatas = response.data
+                            modiDetailModalClose()
+                        })
+                },
+
+            },
+            created
+                () {
+                this.getROLE();
+                this.getName2();
+                this.getDepartmentName()
+            }
+            ,
+
+            mounted() {
+                this.showWorkTimeList();
+                this.showMyExpendList();
+                this.checkMyData();
+            }
+        }
+
+        Vue.createApp(EXPEND).mount("#app");
+    </script>
+    <script>
+        const WORKTIME = {
+            data() {
+                return {
+                    name: "",
+                    startdate: '',
+                    enddate: '',
+                    reasonholiday: '',
+                    boolData: true
+                }
+            },
+            methods: {
+                getName() {
+                    axios.post("http://localhost:8888/api/getName")
+                        .then(response => {
+                            this.name = response.data
+                        })
+                },
+                writeHoliday() {
+                    const data = {
+                        startdate: this.startdate,
+                        enddate: this.enddate,
+                        reasonholiday: this.reasonholiday
+                    }
+                    axios.post("http://localhost:8888/api/workTimeInsert", data)
+                        .then(response => {
+                            this.boolData = response.data
+                            if (this.boolData) {
+                                document.getElementById('TimeClose').click();
+                                window.location.reload();
+                            } else {
+                                alert("데이터가 입력되지 않았습니다.")
+                            }
+                        })
+                }
+            },
+            created() {
+                this.getName();
+            },
+            mounted() {
+            }
+
+        }
+        Vue.createApp(WORKTIME).mount('#workTime_modal')
+    </script>
+
+    </body>
+
+</th:blcok>
+
+</html>

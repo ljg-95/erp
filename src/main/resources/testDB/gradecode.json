@@ -1,0 +1,14 @@
+[
+	{
+		"gradecd" : "G001",
+		"gradename" : "사원"
+	},
+	{
+		"gradecd" : "G002",
+		"gradename" : "임원"
+	},
+	{
+		"gradecd" : "G003",
+		"gradename" : "대표이사"
+	}
+]
