@@ -7,4 +7,6 @@
   <img src="https://img.shields.io/badge/JS(ES6)-0094F5?style=flat&logo=&logoColor=white"/> 
   <img src="https://img.shields.io/badge/CSS(SCSS)-EF2D5E?style=flat&logo=&logoColor=white"/> 
   <img src="https://img.shields.io/badge/Vue.js-FF9E0F?style=flat&logo=&logoColor=white"/> 
+  <img src="https://img.shields.io/badge/HTML-40AEF0?style=flat&logo=&logoColor=white"/> 
+  <img src="https://img.shields.io/badge/Tymeleaf-A100FF?style=flat&logo=&logoColor=white"/> 
 </div>
